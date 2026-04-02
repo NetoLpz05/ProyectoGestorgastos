@@ -1,7 +1,10 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+<<<<<<< HEAD
     alias(libs.plugins.kotlin.android)
+=======
+>>>>>>> c5ffceff8b8373ac53893c5a212aef2312827aa2
 }
 
 android {
@@ -36,9 +39,12 @@ android {
     buildFeatures {
         compose = true
     }
+<<<<<<< HEAD
     kotlinOptions {
         jvmTarget = "11"
     }
+=======
+>>>>>>> c5ffceff8b8373ac53893c5a212aef2312827aa2
 }
 
 dependencies {
@@ -51,7 +57,10 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation("androidx.compose.material:material-icons-extended")
+<<<<<<< HEAD
     implementation(libs.core.ktx)
+=======
+>>>>>>> c5ffceff8b8373ac53893c5a212aef2312827aa2
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
