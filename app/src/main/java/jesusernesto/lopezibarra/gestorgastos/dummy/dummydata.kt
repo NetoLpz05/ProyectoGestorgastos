@@ -66,14 +66,18 @@ object DummyData {
         Grupo(3, "Familia", "Familiar", 4, "👨‍👩‍👧‍👦", 8_200.0),
     )
 
-    val tiposDeGrupo = listOf(
-        "👨‍👩‍👧‍👦" to "Familiar",
-        "💼" to "Trabajo",
-        "💑" to "Pareja",
-        "🎓" to "Escuela",
-        "🎉" to "Evento",
-        "✈️" to "Viaje",
+    // ── Modelo de tipo de grupo ────────────────────────────────────────────────────
+    data class GroupType(val label: String, val emoji: String)
+
+    val groupTypes = listOf(
+        GroupType("Familiar", "👨‍👩‍👧‍👦"),
+        GroupType("Trabajo",  "💼"),
+        GroupType("Pareja",   "💑"),
+        GroupType("Escuela",  "🎓"),
+        GroupType("Evento",   "🎉"),
+        GroupType("Viaje",    "✈️"),
     )
+
 
     val categorias = listOf(
         "🏠" to "Vivienda",
@@ -90,4 +94,7 @@ object DummyData {
         Triple("💳", "Tarjeta de Crédito", "**** 7422"),
         Triple("💳", "Tarjeta de Débito", "**** 8802"),
     )
+
+    //
+
 }
