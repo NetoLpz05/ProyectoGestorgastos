@@ -3,6 +3,7 @@ package jesusernesto.lopezibarra.gestorgastos.ui.theme
 import androidx.compose.ui.graphics.Color
 
 val Background = Color(0xFFF8F8F8)
+
 val Purple80 = Color(0xFFD0BCFF)
 val PurpleGrey80 = Color(0xFFCCC2DC)
 val Pink80 = Color(0xFFEFB8C8)
@@ -20,4 +21,5 @@ val GreenIncome = Color(0xFF34C759)
 val GreenPayment = Color(0xFF10B981)
 val White = Color(0xFFFFFFFF)
 val BackgroundLight = Color(0xFFF5F5F5)
+val TextSubtle     = Color(0xCCFFFFFF)
 val RedGasto = Color(0xFFFF5B5E)
