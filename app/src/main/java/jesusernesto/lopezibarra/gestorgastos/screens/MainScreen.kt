@@ -1,5 +1,6 @@
 package jesusernesto.lopezibarra.gestorgastos.screens
 
+<<<<<<< HEAD
 import android.R
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -283,4 +284,8 @@ fun MainScreenPreview(){
         MainScreen()
     }
 }
+=======
+
+
+>>>>>>> c308c5277fa6be687e2eeb5e030fc1dc88bac4b6
 
