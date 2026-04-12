@@ -55,6 +55,7 @@ import jesusernesto.lopezibarra.gestorgastos.dummy.Transaccion
 import jesusernesto.lopezibarra.gestorgastos.screens.budget.BudgetScreen
 import jesusernesto.lopezibarra.gestorgastos.screens.components.BottomNavBar
 import jesusernesto.lopezibarra.gestorgastos.screens.group.MisGruposScreen
+import jesusernesto.lopezibarra.gestorgastos.screens.income_expenses.NewMovementScreen
 import jesusernesto.lopezibarra.gestorgastos.screens.user.ProfileScreen
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.BackgroundLight
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.DarkNavy
@@ -73,18 +74,23 @@ fun MainScreen(onLogout: () -> Unit = {}) {
     Scaffold(
         containerColor = BackgroundLight,
         bottomBar = {
-            BottomNavBar(
-                tabActivo = currentRoute,
-                onTabSelected = { route ->
-                    if (route != currentRoute) {
-                        navController.navigate(route) {
-                            popUpTo("Inicio") { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
+            if (currentRoute != "NuevoMovimiento") {
+                BottomNavBar(
+                    tabActivo = currentRoute,
+                    onTabSelected = { route ->
+                        if (route != currentRoute) {
+                            navController.navigate(route) {
+                                popUpTo("Inicio") { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
+                    },
+                    onNewMovement = {
+                        navController.navigate("NuevoMovimiento")
                     }
-                }
-            )
+                )
+            }
         }
     ) { padding ->
         NavHost(
@@ -109,6 +115,12 @@ fun MainScreen(onLogout: () -> Unit = {}) {
                 ProfileScreen(
                     onBack = { navController.popBackStack() },
                     onLogout = onLogout
+                )
+            }
+            composable("NuevoMovimiento") {
+                NewMovementScreen(
+                    onBack = { navController.popBackStack() },
+                    onSave = { navController.popBackStack() }
                 )
             }
         }

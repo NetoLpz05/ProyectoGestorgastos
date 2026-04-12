@@ -24,7 +24,8 @@ import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
 @Composable
 fun BottomNavBar(
     tabActivo: String = "Inicio",
-    onTabSelected: (String) -> Unit = {}
+    onTabSelected: (String) -> Unit = {},
+    onNewMovement: () -> Unit = {}
 ) {
     data class NavItem(val label: String, val icon: ImageVector)
 
@@ -52,7 +53,7 @@ fun BottomNavBar(
                             .size(48.dp)
                             .clip(RoundedCornerShape(16.dp))
                             .background(Purple)
-                            .clickable { /* TODO: Nueva Transacción */ },
+                            .clickable { onNewMovement() },
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(text = "+", fontSize = 24.sp, color = Color.White, fontWeight = FontWeight.Bold)
