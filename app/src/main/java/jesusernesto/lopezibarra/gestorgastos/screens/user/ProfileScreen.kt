@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import jesusernesto.lopezibarra.gestorgastos.dummy.DummyData
 import jesusernesto.lopezibarra.gestorgastos.dummy.UserProfile
+import jesusernesto.lopezibarra.gestorgastos.screens.components.AppTopBar
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
 
 @Composable
@@ -273,22 +274,4 @@ fun EditProfileScreenPreview() {
             onSave = { }
         )
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AppTopBar(title: String, onBack: () -> Unit) {
-    TopAppBar(
-        title = { Text(text = title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkNavy) },
-        navigationIcon = {
-            IconButton(onClick = onBack) {
-                Icon(
-                    imageVector = Icons.Outlined.ArrowBack,
-                    contentDescription = "Regresar",
-                    tint = DarkNavy
-                )
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
-    )
 }

@@ -45,14 +45,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import jesusernesto.lopezibarra.gestorgastos.dummy.DummyData
 import jesusernesto.lopezibarra.gestorgastos.dummy.Presupuesto
+import jesusernesto.lopezibarra.gestorgastos.screens.components.AppTopBar
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.DarkNavy
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.Purple
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.PurpleLight
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.TextGray
-
-
-
-
 
 @Composable
 fun GraphicScreen(
@@ -254,25 +251,6 @@ fun CategoriaChip(emoji: String, nombre: String, isDestacada: Boolean, modifier:
     }
 }
 
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AppTopBar(title: String, onBack: () -> Unit) {
-    TopAppBar(
-        title = { Text(text = title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkNavy) },
-        navigationIcon = {
-            IconButton(onClick = onBack) {
-                Icon(
-                    imageVector = Icons.Outlined.ArrowBack,
-                    contentDescription = "Regresar",
-                    tint = DarkNavy
-                )
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
-    )
-}
-
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun GraphicScreenPreview(){
@@ -280,4 +258,3 @@ fun GraphicScreenPreview(){
         GraphicScreen (onBack = {})
     }
 }
-
