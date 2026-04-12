@@ -23,7 +23,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import jesusernesto.lopezibarra.gestorgastos.screens.components.BottomNavBar
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.Background
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.DarkNavy
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.Purple
@@ -96,8 +95,7 @@ fun MisGruposScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
             )
-        },
-        bottomBar = { BottomNavBar() }
+        }
     ) { padding ->
         LazyColumn(
             modifier = Modifier

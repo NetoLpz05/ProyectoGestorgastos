@@ -17,7 +17,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import jesusernesto.lopezibarra.gestorgastos.screens.components.BottomNavBar
 import jesusernesto.lopezibarra.gestorgastos.screens.components.GastoTotalCard
 import jesusernesto.lopezibarra.gestorgastos.screens.components.GastoTotalCardData
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.Background
@@ -85,9 +84,6 @@ fun ViajesScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
             )
-        },
-        bottomBar = {
-            BottomNavBar()
         }
     ) { paddingValues ->
 

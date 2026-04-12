@@ -18,13 +18,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import jesusernesto.lopezibarra.gestorgastos.dummy.DummyData.groupTypes
 import jesusernesto.lopezibarra.gestorgastos.dummy.DummyData.GroupType
-import jesusernesto.lopezibarra.gestorgastos.screens.components.BottomNavBar
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.Background
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.DarkNavy
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.White
@@ -69,8 +67,7 @@ fun CrearGrupoScreen(
                     modifier = Modifier.align(Alignment.Center),
                 )
             }
-        },
-        bottomBar = { BottomNavBar() },
+        }
     ) { padding ->
         Column(
             modifier = Modifier
