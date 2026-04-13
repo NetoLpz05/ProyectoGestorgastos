@@ -17,6 +17,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import jesusernesto.lopezibarra.gestorgastos.data.GastoReciente
+import jesusernesto.lopezibarra.gestorgastos.data.enums.CategoriaGasto
+import jesusernesto.lopezibarra.gestorgastos.data.gastosEjemplo
 import jesusernesto.lopezibarra.gestorgastos.screens.components.GastoTotalCard
 import jesusernesto.lopezibarra.gestorgastos.screens.components.GastoTotalCardData
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.Background
@@ -26,23 +29,6 @@ import jesusernesto.lopezibarra.gestorgastos.ui.theme.PurpleGrey40
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.White
 
 //DATOS MOCK
-data class GastoReciente(
-    val id: Int,
-    val nombre: String,
-    val categoria: CategoriaGasto,
-    val monto: String,
-    val pagadoPor: String,
-    val fecha: String
-)
-
-enum class CategoriaGasto { COMIDA, TRANSPORTE, BEBIDAS, OTRO }
-
-
-val gastosEjemplo = listOf(
-    GastoReciente(1, "Cena en La Parrilla",  CategoriaGasto.COMIDA,     "$280.00", "Mateo",  "14 MAY"),
-    GastoReciente(2, "Renta de Auto",         CategoriaGasto.TRANSPORTE, "$650.00", "Carlos", "12 MAY"),
-    GastoReciente(3, "Bebidas en Coco Bongo", CategoriaGasto.BEBIDAS,    "$270.00", "Ana",    "11 MAY")
-)
 
 val cardEjemplo = GastoTotalCardData(
     montoTotal         = "$1,200.00",

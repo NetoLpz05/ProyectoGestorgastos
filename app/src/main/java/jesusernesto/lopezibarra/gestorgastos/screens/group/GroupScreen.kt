@@ -23,6 +23,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import jesusernesto.lopezibarra.gestorgastos.data.Grupo
+import jesusernesto.lopezibarra.gestorgastos.data.enums.CategoriaGrupo
+import jesusernesto.lopezibarra.gestorgastos.data.gruposEjemplo
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.Background
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.DarkNavy
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.Purple
@@ -31,49 +34,6 @@ import jesusernesto.lopezibarra.gestorgastos.ui.theme.PurpleLight
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.White
 
 
-data class Grupo(
-    val id: Int,
-    val nombre: String,
-    val miembros: Int,
-    val iconoCategoria: CategoriaGrupo
-)
-
-enum class CategoriaGrupo {
-    PAREJA, VIAJES, CASA, AMIGOS, TRABAJO, OTRO
-}
-
-
-
-private fun fondoIcono(cat: CategoriaGrupo) = when (cat) {
-    CategoriaGrupo.PAREJA   -> Color(0xFFFEECEC)
-    CategoriaGrupo.VIAJES   -> Color(0xFFFEF0E4)
-    CategoriaGrupo.CASA     -> Color(0xFFE4F0FE)
-    CategoriaGrupo.AMIGOS   -> Color(0xFFE4FEEE)
-    CategoriaGrupo.TRABAJO  -> Color(0xFFEEE4FE)
-    CategoriaGrupo.OTRO     -> Color(0xFFF2F2F7)
-}
-private fun colorIcono(cat: CategoriaGrupo) = when (cat) {
-    CategoriaGrupo.PAREJA   -> Color(0xFFE05252)
-    CategoriaGrupo.VIAJES   -> Color(0xFFBF7B3A)
-    CategoriaGrupo.CASA     -> Color(0xFF3A7ABF)
-    CategoriaGrupo.AMIGOS   -> Color(0xFF3ABF7A)
-    CategoriaGrupo.TRABAJO  -> Color(0xFF7A3ABF)
-    CategoriaGrupo.OTRO     -> Color(0xFF888888)
-}
-private fun iconoVector(cat: CategoriaGrupo): ImageVector = when (cat) {
-    CategoriaGrupo.PAREJA   -> Icons.Filled.Favorite
-    CategoriaGrupo.VIAJES   -> Icons.Filled.Flight
-    CategoriaGrupo.CASA     -> Icons.Filled.Home
-    CategoriaGrupo.AMIGOS   -> Icons.Filled.People
-    CategoriaGrupo.TRABAJO  -> Icons.Filled.Work
-    CategoriaGrupo.OTRO     -> Icons.Filled.Category
-}
-
-val gruposEjemplo = listOf(
-    Grupo(1, "Pareja", 2, CategoriaGrupo.PAREJA),
-    Grupo(2, "Viajes", 6, CategoriaGrupo.VIAJES),
-    Grupo(3, "Departamento", 3, CategoriaGrupo.CASA)
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -212,6 +172,31 @@ private fun CrearGrupoCard(onClick: () -> Unit) {
             )
         }
     }
+}
+
+private fun fondoIcono(cat: CategoriaGrupo) = when (cat) {
+    CategoriaGrupo.PAREJA   -> Color(0xFFFEECEC)
+    CategoriaGrupo.VIAJES   -> Color(0xFFFEF0E4)
+    CategoriaGrupo.CASA     -> Color(0xFFE4F0FE)
+    CategoriaGrupo.AMIGOS   -> Color(0xFFE4FEEE)
+    CategoriaGrupo.TRABAJO  -> Color(0xFFEEE4FE)
+    CategoriaGrupo.OTRO     -> Color(0xFFF2F2F7)
+}
+private fun colorIcono(cat: CategoriaGrupo) = when (cat) {
+    CategoriaGrupo.PAREJA   -> Color(0xFFE05252)
+    CategoriaGrupo.VIAJES   -> Color(0xFFBF7B3A)
+    CategoriaGrupo.CASA     -> Color(0xFF3A7ABF)
+    CategoriaGrupo.AMIGOS   -> Color(0xFF3ABF7A)
+    CategoriaGrupo.TRABAJO  -> Color(0xFF7A3ABF)
+    CategoriaGrupo.OTRO     -> Color(0xFF888888)
+}
+private fun iconoVector(cat: CategoriaGrupo): ImageVector = when (cat) {
+    CategoriaGrupo.PAREJA   -> Icons.Filled.Favorite
+    CategoriaGrupo.VIAJES   -> Icons.Filled.Flight
+    CategoriaGrupo.CASA     -> Icons.Filled.Home
+    CategoriaGrupo.AMIGOS   -> Icons.Filled.People
+    CategoriaGrupo.TRABAJO  -> Icons.Filled.Work
+    CategoriaGrupo.OTRO     -> Icons.Filled.Category
 }
 
 @Preview(showBackground = true)
