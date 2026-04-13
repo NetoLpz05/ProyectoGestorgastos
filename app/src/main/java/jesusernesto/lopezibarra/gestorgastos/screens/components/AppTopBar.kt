@@ -13,16 +13,16 @@ import jesusernesto.lopezibarra.gestorgastos.ui.theme.DarkNavy
 @Composable
 fun AppTopBar(title: String, onBack: () -> Unit) {
     TopAppBar(
-        title = { Text(text = title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkNavy) },
+        title = { Text(text = title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface) },
         navigationIcon = {
             IconButton(onClick = onBack) {
                 Icon(
                     imageVector = Icons.Outlined.ArrowBack,
                     contentDescription = "Regresar",
-                    tint = DarkNavy
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
         },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
     )
 }

@@ -39,10 +39,10 @@ fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
     ) {
 
-        Surface(shadowElevation = 4.dp, color = Color.White) {
+        Surface(shadowElevation = 4.dp, color = MaterialTheme.colorScheme.surface) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -57,7 +57,7 @@ fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit) {
                     text = "Nuevo Movimiento",
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 18.sp,
-                    color = DarkNavy,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center
                 )
@@ -82,12 +82,12 @@ fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit) {
                     .border(2.dp, PurpleLight, RoundedCornerShape(10.dp))
             ) {
                 Box(modifier = Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(topStart = 10.dp, bottomStart = 10.dp))
-                    .background(if (isGasto) Color.White else PurpleLight).clickable { isGasto = true }, contentAlignment = Alignment.Center) {
+                    .background(if (isGasto) MaterialTheme.colorScheme.surface else PurpleLight.copy(alpha = 0.2f)).clickable { isGasto = true }, contentAlignment = Alignment.Center) {
                     Text("Gasto", fontWeight = FontWeight.SemiBold, fontSize = 18.sp, color = if (isGasto) RedGasto else TextGray)
                 }
                 Box(
                     modifier = Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(topEnd = 10.dp, bottomEnd = 10.dp))
-                        .background(if (!isGasto) Color.White else PurpleLight).clickable { isGasto = false }, contentAlignment = Alignment.Center
+                        .background(if (!isGasto) MaterialTheme.colorScheme.surface else PurpleLight.copy(alpha = 0.2f)).clickable { isGasto = false }, contentAlignment = Alignment.Center
                 ) {
                     Text("Ingreso", fontWeight = FontWeight.SemiBold, fontSize = 18.sp, color = if (!isGasto) GreenIncome else TextGray)
                 }
@@ -100,9 +100,9 @@ fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                Text("$", fontWeight = FontWeight.Bold, fontSize = 40.sp, color = TextGray)
+                Text("$", fontWeight = FontWeight.Bold, fontSize = 40.sp, color = MaterialTheme.colorScheme.onSurface)
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(amount, fontWeight = FontWeight.Bold, fontSize = 40.sp, color = TextGray)
+                Text(amount, fontWeight = FontWeight.Bold, fontSize = 40.sp, color = MaterialTheme.colorScheme.onSurface)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -186,7 +186,7 @@ fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit) {
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().height(47.dp).clip(RoundedCornerShape(10.dp))
-                    .border(2.dp, PurpleLight, RoundedCornerShape(10.dp), ).padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    .border(2.dp, PurpleLight, RoundedCornerShape(10.dp), ).padding(horizontal = 16.dp).background(MaterialTheme.colorScheme.surface), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Outlined.LocationOn, contentDescription = null, tint = Purple, modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.width(10.dp))
                 Text("Agregar ubicación...", fontWeight = FontWeight.Bold, fontSize = 12.sp,
@@ -197,7 +197,7 @@ fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit) {
 
             Row(
                 modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().height(47.dp)
-                    .clip(RoundedCornerShape(10.dp)).border(2.dp, PurpleLight, RoundedCornerShape(10.dp)).padding(horizontal = 16.dp),
+                    .clip(RoundedCornerShape(10.dp)).border(2.dp, PurpleLight, RoundedCornerShape(10.dp)).padding(horizontal = 16.dp).background(MaterialTheme.colorScheme.surface),
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
                 Icon(Icons.Outlined.CameraAlt, contentDescription = null, tint = TextGray, modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.width(8.dp))
@@ -237,7 +237,7 @@ private fun CategoryItem(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.clickable(onClick = onClick).width(50.dp)) {
-        Box(modifier = Modifier.size(34.dp).clip(CircleShape).background(if (selected) Purple else PurpleLight),
+        Box(modifier = Modifier.size(34.dp).clip(CircleShape).background(if (selected) Purple else PurpleLight.copy(alpha = 0.2f)),
             contentAlignment = Alignment.Center) {
             Text(emoji, fontSize = 16.sp)
         }
@@ -251,24 +251,26 @@ private fun CategoryItem(
 private fun movementFieldColors() = OutlinedTextFieldDefaults.colors(
     unfocusedBorderColor = PurpleLight,
     focusedBorderColor = Purple,
-    unfocusedContainerColor = Color.White,
-    focusedContainerColor = Color.White
+    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+    focusedContainerColor = MaterialTheme.colorScheme.surface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+    focusedTextColor = MaterialTheme.colorScheme.onSurface
 )
 
 @Composable
 fun FormaPagoCard(selectedIndex: Int, onSelect: (Int) -> Unit, onAddCard: () -> Unit = {}) {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 32.dp)) {
+        modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).padding(horizontal = 20.dp).padding(bottom = 32.dp)) {
         Box(modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 16.dp).size(width = 40.dp, height = 4.dp)
                 .clip(RoundedCornerShape(2.dp)).background(PurpleLight))
 
         Text(text = "Selecciona el método", fontWeight = FontWeight.Bold, fontSize = 18.sp,
-            color = DarkNavy, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp))
+            color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp))
 
         DummyData.formasPago.forEachIndexed { index, (emoji, label, detail) ->
             val isSelected = selectedIndex == index
             Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)
-                    .clip(RoundedCornerShape(12.dp)).background(if (isSelected) Purple else PurpleLight)
+                    .clip(RoundedCornerShape(12.dp)).background(if (isSelected) Purple else PurpleLight.copy(alpha = 0.2f))
                     .clickable { onSelect(index) }.padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
                 Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp))
                         .background(
@@ -281,7 +283,7 @@ fun FormaPagoCard(selectedIndex: Int, onSelect: (Int) -> Unit, onAddCard: () -> 
                 Spacer(modifier = Modifier.width(14.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = label, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = if (isSelected) Color.White else DarkNavy)
+                    Text(text = label, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface)
 
                     Text(text = detail, fontSize = 12.sp, color = if (isSelected) Color.White.copy(alpha = 0.7f) else TextGray)
                 }
@@ -328,5 +330,5 @@ fun FormaPagoCardPreview() {
 
 @Composable
 fun GestorGastosTheme(content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = lightColorScheme(), content = content)
+    MaterialTheme(colorScheme = MaterialTheme.colorScheme, content = content)
 }

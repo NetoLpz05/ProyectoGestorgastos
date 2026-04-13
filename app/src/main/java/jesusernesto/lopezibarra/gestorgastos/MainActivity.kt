@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -23,9 +24,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            GestorgastosTheme {
+            var isDarkMode by remember { mutableStateOf(false) }
+            
+            GestorgastosTheme(darkTheme = isDarkMode) {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    AppRoot()
+                    AppRoot(
+                        isDarkMode = isDarkMode,
+                        onDarkModeChange = { isDarkMode = it }
+                    )
                 }
             }
         }
@@ -35,7 +41,10 @@ class MainActivity : ComponentActivity() {
 private enum class Screen { LOGIN, REGISTER, MAIN }
 
 @Composable
-private fun AppRoot() {
+private fun AppRoot(
+    isDarkMode: Boolean,
+    onDarkModeChange: (Boolean) -> Unit
+) {
     var pantallaActual by remember { mutableStateOf(Screen.LOGIN) }
 
     when (pantallaActual) {
@@ -51,13 +60,9 @@ private fun AppRoot() {
         )
 
         Screen.MAIN -> MainScreen(
-            onLogout = { pantallaActual = Screen.LOGIN }
+            onLogout = { pantallaActual = Screen.LOGIN },
+            isDarkMode = isDarkMode,
+            onDarkModeChange = onDarkModeChange
         )
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    AppRoot()
 }

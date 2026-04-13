@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AttachMoney
 import androidx.compose.material.icons.outlined.TrendingDown
 import androidx.compose.material.icons.outlined.TrendingUp
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -56,7 +57,7 @@ fun BudgetScreen(onBack: () -> Unit = {}){
         EditBudgetScreen(onBack = {estaEditando = false})
         return
     }
-    Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         AppTopBar(title = "Mi presupuesto", onBack = onBack)
 
         Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
@@ -65,15 +66,15 @@ fun BudgetScreen(onBack: () -> Unit = {}){
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Outlined.TrendingUp, contentDescription = null, tint = GreenIncome, modifier = Modifier.size(22.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "Ingreso Mensual", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = DarkNavy, modifier = Modifier.weight(1f))
+                Text(text = "Ingreso Mensual", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f))
                 Text(text = "Editar", color = Purple, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable{estaEditando = true})
             }
             Spacer(modifier = Modifier.height(8.dp))
 
-            Box(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).border(1.5.dp, PurpleLight, RoundedCornerShape(12.dp)).padding(horizontal = 16.dp, vertical = 14.dp)){
+            Box(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surface).border(1.5.dp, PurpleLight, RoundedCornerShape(12.dp)).padding(horizontal = 16.dp, vertical = 14.dp)){
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "Ingreso fijo", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = DarkNavy)
+                    Text(text = "Ingreso fijo", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
                     Text(text = "$${"%,.0f".format(DummyData.ingreso)}", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Purple)
                 }
             }
@@ -83,7 +84,7 @@ fun BudgetScreen(onBack: () -> Unit = {}){
                 Icon(Icons.Outlined.TrendingDown, contentDescription = null, tint = RedExpense, modifier = Modifier.size(22.dp))
                 Spacer(modifier = Modifier.width(8.dp))
 
-                Text(text = "Gastos fijos", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = DarkNavy)
+                Text(text = "Gastos fijos", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground)
             }
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -92,22 +93,22 @@ fun BudgetScreen(onBack: () -> Unit = {}){
                 val titulo = partes[0].trim()
                 val categoria = if (partes.size > 1) partes[1].trim() else ""
 
-                Box(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp).clip(RoundedCornerShape(12.dp)).border(1.5.dp, PurpleLight, RoundedCornerShape(12.dp)).padding(horizontal = 16.dp, vertical = 14.dp)){
+                Box(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surface).border(1.5.dp, PurpleLight, RoundedCornerShape(12.dp)).padding(horizontal = 16.dp, vertical = 14.dp)){
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Row {
-                            Text(text = titulo, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = DarkNavy)
+                            Text(text = titulo, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
                             if (categoria.isNotEmpty()){
-                                Text(text = "($categoria)", fontSize = 13.sp, color = TextGray)
+                                Text(text = " ($categoria)", fontSize = 13.sp, color = TextGray)
                             }
                         }
-                        Text(text = "$${"%.0f".format(monto)}", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = DarkNavy)
+                        Text(text = "$${"%.0f".format(monto)}", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "Distribucion por categoria", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = DarkNavy, modifier = Modifier.weight(1f))
+                Text(text = "Distribucion por categoria", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f))
                 Box(modifier = Modifier.clip(RoundedCornerShape(20.dp)).border(1.5.dp, PurpleLight, RoundedCornerShape(20.dp))){
                     Row {
                         Box(modifier = Modifier.clip(RoundedCornerShape(20.dp)).background(if (mostrarEnPesos) Purple else Color.Transparent).clickable{mostrarEnPesos = true}.padding(horizontal = 10.dp, vertical = 6.dp), contentAlignment = Alignment.Center) {
@@ -125,15 +126,15 @@ fun BudgetScreen(onBack: () -> Unit = {}){
                 val excedido = presupuesto.restante < 0
                 val  porcentaje = presupuesto.porcentaje.coerceIn(0, 100)
 
-                Box(modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp).clip(RoundedCornerShape(12.dp)).border(1.5.dp, PurpleLight, RoundedCornerShape(12.dp)).padding(14.dp)){
+                Box(modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surface).border(1.5.dp, PurpleLight, RoundedCornerShape(12.dp)).padding(14.dp)){
                     Column {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Column {
-                                Text(text = presupuesto.category, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = DarkNavy)
+                                Text(text = presupuesto.category, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
                                 Text(text = if (mostrarEnPesos) "Restan: $${"%,.0f".format(presupuesto.restante)}" else "${100 - porcentaje}% Disponible", fontSize = 12.sp, color = if (excedido) RedExpense else TextGray)
                             }
                             Column(horizontalAlignment = Alignment.End) {
-                                Text(text = if (mostrarEnPesos) "$${"%,.0f".format(presupuesto.assigned)}" else "$porcentaje%", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = if (excedido) RedExpense else PurpleLight)
+                                Text(text = if (mostrarEnPesos) "$${"%,.0f".format(presupuesto.assigned)}" else "$porcentaje%", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = if (excedido) RedExpense else Purple)
                                 Text(text = if (mostrarEnPesos) "MONTO TOTAL" else "USO ACTUAL", fontSize = 10.sp, color = TextGray)
                             }
                         }

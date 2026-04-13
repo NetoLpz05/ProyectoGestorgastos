@@ -84,16 +84,16 @@ fun MisGruposScreen(
     onCrearGrupo: () -> Unit      = {},
 ) {
     Scaffold(
-        containerColor = Background,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Mis Grupos", fontSize = 18.sp, fontWeight = FontWeight.SemiBold) },
+                title = { Text("Mis Grupos", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface) },
                 navigationIcon = {
                     IconButton(onClick = onAtras) {
-                        Icon(Icons.Filled.ArrowBack, "Regresar", tint = Purple)
+                        Icon(Icons.Filled.ArrowBack, "Regresar", tint = MaterialTheme.colorScheme.onSurface)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         }
     ) { padding ->
@@ -120,7 +120,7 @@ fun MisGruposScreen(
 private fun GrupoCard(grupo: Grupo, onClick: () -> Unit) {
     Card(
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         modifier = Modifier.fillMaxWidth().clickable { onClick() }
     ) {
@@ -138,7 +138,7 @@ private fun GrupoCard(grupo: Grupo, onClick: () -> Unit) {
                     text = grupo.nombre,
                     fontSize = 19.sp,
                     fontWeight = FontWeight.Bold,
-                    color = DarkNavy
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(Modifier.height(6.dp))
@@ -159,7 +159,7 @@ private fun GrupoCard(grupo: Grupo, onClick: () -> Unit) {
                 }
             }
 
-            Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(Color(0xFFEEEEF4)))
+            Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(PurpleLight.copy(alpha = 0.3f)))
 
             Box(
                 contentAlignment = Alignment.Center,
@@ -188,7 +188,7 @@ private fun GrupoCard(grupo: Grupo, onClick: () -> Unit) {
 private fun CrearGrupoCard(onClick: () -> Unit) {
     Card(
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F7FB)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
         border = BorderStroke(width = 1.dp, color = PurpleLight),
         modifier = Modifier.fillMaxWidth().clickable { onClick() }
     ) {
@@ -203,7 +203,7 @@ private fun CrearGrupoCard(onClick: () -> Unit) {
                 modifier = Modifier.size(32.dp)
             )
             Spacer(Modifier.height(12.dp))
-            Text("Crear un nuevo grupo", fontWeight = FontWeight.Bold, color = DarkNavy)
+            Text("Crear un nuevo grupo", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             Text(
                 "Divide gastos de cenas o viajes",
                 fontSize = 12.sp,

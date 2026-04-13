@@ -37,7 +37,7 @@ fun BottomNavBar(
     )
 
     NavigationBar(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 4.dp,
     ) {
         items.forEachIndexed { index, item ->

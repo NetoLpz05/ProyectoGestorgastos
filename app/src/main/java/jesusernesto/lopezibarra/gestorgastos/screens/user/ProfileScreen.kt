@@ -27,10 +27,13 @@ import jesusernesto.lopezibarra.gestorgastos.screens.components.AppTopBar
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
 
 @Composable
-fun ProfileScreen(onBack: () -> Unit, onLogout: () -> Unit) {
-    var modoOscuro by remember { mutableStateOf(false) }
+fun ProfileScreen(
+    onBack: () -> Unit,
+    onLogout: () -> Unit,
+    isDarkMode: Boolean = false,
+    onDarkModeChange: (Boolean) -> Unit = {}
+) {
     var biometria by remember { mutableStateOf(true) }
-    var alertaPresupuesto by remember { mutableStateOf(true) }
     var estaEditando by remember { mutableStateOf(false) }
     var estaEnAlertas by remember { mutableStateOf(false) }
 
@@ -50,7 +53,7 @@ fun ProfileScreen(onBack: () -> Unit, onLogout: () -> Unit) {
         return
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
 
         AppTopBar(title = "Mi Perfil", onBack = onBack)
 
@@ -64,7 +67,7 @@ fun ProfileScreen(onBack: () -> Unit, onLogout: () -> Unit) {
                 }
                 Text(text = "Editar Foto", color = Purple, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 6.dp))
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(user.nombre, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = DarkNavy)
+                Text(user.nombre, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground)
                 Text(user.correo, fontSize = 14.sp, color = TextGray)
             }
 
@@ -78,7 +81,7 @@ fun ProfileScreen(onBack: () -> Unit, onLogout: () -> Unit) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Box(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().clip(RoundedCornerShape(12.dp))
-                    .border(2.dp, PurpleLight, RoundedCornerShape(12.dp))) {
+                    .border(2.dp, PurpleLight, RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surface)) {
                 Column {
                     InfoRow(icon = Icons.Outlined.Person, label = "NOMBRE COMPLETO", value = user.nombre)
                     Divider(color = PurpleLight)
@@ -92,13 +95,13 @@ fun ProfileScreen(onBack: () -> Unit, onLogout: () -> Unit) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Box(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().clip(RoundedCornerShape(12.dp))
-                    .border(2.dp, PurpleLight, RoundedCornerShape(12.dp))) {
+                    .border(2.dp, PurpleLight, RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surface)) {
                 Row(modifier = Modifier.fillMaxWidth().height(58.dp)
                         .padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Outlined.Fingerprint, contentDescription = null, tint = Purple, modifier = Modifier.size(22.dp))
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Biometría", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = DarkNavy)
+                        Text("Biometría", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
                         Text("HUELLA / FACEID", fontSize = 12.sp, color = TextGray)
                     }
                     Switch(
@@ -115,13 +118,13 @@ fun ProfileScreen(onBack: () -> Unit, onLogout: () -> Unit) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Box(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().clip(RoundedCornerShape(12.dp))
-                    .border(2.dp, PurpleLight, RoundedCornerShape(12.dp)).clickable(onClick = {estaEnAlertas = true})) {
+                    .border(2.dp, PurpleLight, RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surface).clickable(onClick = {estaEnAlertas = true})) {
                 Row(modifier = Modifier.fillMaxWidth().height(54.dp)
                         .padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Outlined.Notifications, contentDescription = null, tint = Purple, modifier = Modifier.size(27.dp))
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Editar Notificaciones", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = DarkNavy)
+                        Text("Editar Notificaciones", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
                         Text("ALERTAS DE PRESUPUESTO", fontSize = 12.sp, color = TextGray)
                     }
                     Icon(Icons.Outlined.ChevronRight, contentDescription = null, tint = TextGray)
@@ -134,18 +137,18 @@ fun ProfileScreen(onBack: () -> Unit, onLogout: () -> Unit) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Box(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp)).border(2.dp, PurpleLight, RoundedCornerShape(12.dp))) {
+                    .clip(RoundedCornerShape(12.dp)).border(2.dp, PurpleLight, RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surface)) {
                 Row(modifier = Modifier.fillMaxWidth().height(54.dp)
                         .padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Outlined.DarkMode, contentDescription = null, tint = Purple, modifier = Modifier.size(22.dp))
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Modo Oscuro", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = DarkNavy)
+                        Text("Modo Oscuro", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
                         Text("ACTIVAR MODO OSCURO EN LA APP", fontSize = 11.sp, color = TextGray)
                     }
                     Switch(
-                        checked = modoOscuro,
-                        onCheckedChange = { modoOscuro = it },
+                        checked = isDarkMode,
+                        onCheckedChange = onDarkModeChange,
                         colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = Purple)
                     )
                 }
@@ -171,7 +174,7 @@ fun EditProfileScreen(
     var name by remember { mutableStateOf(user.nombre) }
     var phone by remember { mutableStateOf(user.telefono) }
 
-    Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
 
         AppTopBar(title = "Editar mi Perfil", onBack = onBack)
 
@@ -222,7 +225,7 @@ private fun InfoRow(icon: ImageVector, label: String, value: String) {
         Spacer(modifier = Modifier.width(12.dp))
         Column {
             Text(label, fontSize = 11.sp, color = TextGray, fontWeight = FontWeight.Bold)
-            Text(value, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = DarkNavy)
+            Text(value, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
         }
     }
 }
@@ -240,8 +243,10 @@ private fun EditField(value: String, onValueChange: (String) -> Unit, icon: Imag
         colors = OutlinedTextFieldDefaults.colors(
             unfocusedBorderColor = PurpleLight,
             focusedBorderColor = Purple,
-            unfocusedContainerColor = Color.White,
-            focusedContainerColor = Color.White
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+            focusedTextColor = MaterialTheme.colorScheme.onSurface
         )
     )
 }

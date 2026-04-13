@@ -1,46 +1,21 @@
 package jesusernesto.lopezibarra.gestorgastos.screens
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -66,13 +41,17 @@ import jesusernesto.lopezibarra.gestorgastos.ui.theme.RedExpense
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.TextGray
 
 @Composable
-fun MainScreen(onLogout: () -> Unit = {}) {
+fun MainScreen(
+    onLogout: () -> Unit = {},
+    isDarkMode: Boolean = false,
+    onDarkModeChange: (Boolean) -> Unit = {}
+) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: "Inicio"
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             if (currentRoute != "NuevoMovimiento") {
                 BottomNavBar(
@@ -114,7 +93,9 @@ fun MainScreen(onLogout: () -> Unit = {}) {
             composable("Perfil") {
                 ProfileScreen(
                     onBack = { navController.popBackStack() },
-                    onLogout = onLogout
+                    onLogout = onLogout,
+                    isDarkMode = isDarkMode,
+                    onDarkModeChange = onDarkModeChange
                 )
             }
             composable("NuevoMovimiento") {
@@ -139,15 +120,15 @@ fun HomeScreen() {
         matchCategoria && matchBusqueda
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(BackgroundLight)) {
-        Row(modifier = Modifier.fillMaxWidth().background(Color.White).padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        Row(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(modifier = Modifier.size(44.dp).clip(CircleShape).background(PurpleLight), contentAlignment = Alignment.Center){
                 Image(painter = painterResource(id = DummyData.userActual.pfp), contentDescription = "Foto de perfil", modifier = Modifier.fillMaxSize().clip(CircleShape))
             }
             Spacer(modifier = Modifier.width(10.dp))
             Column {
                 Text(text = DummyData.mesActual, fontSize = 12.sp, color = TextGray)
-                Text(text = "Mis finanzas", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkNavy)
+                Text(text = "Mis finanzas", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             }
         }
         Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())) {
@@ -182,7 +163,14 @@ fun HomeScreen() {
                     Text("Buscar movimientos...", color = TextGray.copy(alpha = 0.5f), fontSize = 14.sp)
                 },
                 leadingIcon = {Icon(Icons.Outlined.Search, contentDescription = null, tint = TextGray)},
-                colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = PurpleLight, focusedBorderColor = Purple, unfocusedContainerColor = Color.White, focusedContainerColor = Color.White),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = PurpleLight,
+                    focusedBorderColor = Purple,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface
+                ),
                 singleLine = true
             )
             Spacer(modifier = Modifier.height(10.dp))
@@ -191,18 +179,18 @@ fun HomeScreen() {
                 categoriasFiltro.forEach { cat ->
                     val isSelected = cat == categoriaSeleccionada
                     Box(modifier = Modifier.clip(RoundedCornerShape(20.dp)).
-                    background(if (isSelected) DarkNavy else Color.White).border(1.dp, if (isSelected) DarkNavy else PurpleLight, RoundedCornerShape(20.dp)).
+                    background(if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.surface).border(1.dp, if (isSelected) MaterialTheme.colorScheme.onSurface else PurpleLight, RoundedCornerShape(20.dp)).
                     clickable{categoriaSeleccionada = cat}.padding(horizontal = 14.dp, vertical = 8.dp)){
-                        Text(text = cat, fontSize = 13.sp, fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal, color = if (isSelected) Color.White else TextGray)
+                        Text(text = cat, fontSize = 13.sp, fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal, color = if (isSelected) MaterialTheme.colorScheme.surface else TextGray)
                     }
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(text = "Ultimos movimientos", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkNavy, modifier = Modifier.padding(horizontal = 19.dp))
+            Text(text = "Ultimos movimientos", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(horizontal = 19.dp))
             Spacer(modifier = Modifier.height(8.dp))
 
-            Box(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Color.White)){
+            Box(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.surface)){
                 Column {
                     if (transaccionesFiltradas.isEmpty()){
                         Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center){
@@ -220,11 +208,11 @@ fun HomeScreen() {
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(text = "Gastos por categoria", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkNavy, modifier = Modifier.padding(horizontal = 16.dp))
+            Text(text = "Gastos por categoria", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(horizontal = 16.dp))
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Box(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Color.White)){
+            Box(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.surface)){
                 Column {
                     DummyData.gastosPorCategoria.forEachIndexed { index, gasto ->
                         Row(
@@ -239,14 +227,14 @@ fun HomeScreen() {
                                 text = gasto.name,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = DarkNavy,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.weight(1f)
                             )
                             Text(
                                 text = "$${"%,.2f".format(gasto.amount)}",
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = DarkNavy
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                         if (index < DummyData.gastosPorCategoria.lastIndex) {
@@ -263,16 +251,16 @@ fun HomeScreen() {
 @Composable
 private fun FechaFiltro(fecha: String, modifier: Modifier = Modifier){
     Row(
-        modifier = Modifier.
+        modifier = modifier.
         clip(RoundedCornerShape(20.dp)).
         border(1.5.dp, PurpleLight, RoundedCornerShape(10.dp)).
-        background(Color.White).
+        background(MaterialTheme.colorScheme.surface).
         padding(horizontal = 10.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Icon(Icons.Outlined.CalendarMonth, contentDescription = null, tint = DarkNavy, modifier = Modifier.size(16.dp))
+        Icon(Icons.Outlined.CalendarMonth, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(16.dp))
 
-        Text(text = fecha, fontSize = 13.sp, color = DarkNavy, fontWeight = FontWeight.Medium)
+        Text(text = fecha, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium)
     }
 }
 
@@ -285,7 +273,7 @@ private fun TransaccionRow(transaccion: Transaccion){
         }
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = transaccion.title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = DarkNavy)
+            Text(text = transaccion.title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
             Text(text = "${transaccion.category} - ${transaccion.date}", fontSize = 12.sp, color = TextGray)
         }
         Text(text = "${if (isIngreso) "+ " else "- "}$${"%,.2f".format(Math.abs(transaccion.amount))}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = if (isIngreso) GreenIncome else RedExpense)
