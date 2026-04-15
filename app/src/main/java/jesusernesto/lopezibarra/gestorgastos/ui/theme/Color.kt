@@ -23,3 +23,19 @@ val White = Color(0xFFFFFFFF)
 val BackgroundLight = Color(0xFFF5F5F5)
 val TextSubtle     = Color(0xCCFFFFFF)
 val RedGasto = Color(0xFFFF5B5E)
+
+
+val Rose50    = Color(0xFFFEECEC)
+val Orange50  = Color(0xFFFEF0E4)
+val Blue50    = Color(0xFFE4F0FE)
+val Green50   = Color(0xFFE4FEEE)
+val Violet50  = Color(0xFFEEE4FE)
+val LightGray = Color(0xFFF2F2F7)
+
+
+val Red40     = Color(0xFFE05252)
+val Bronze40  = Color(0xFFBF7B3A)
+val Azure40   = Color(0xFF3A7ABF)
+val Emerald40 = Color(0xFF3ABF7A)
+val Purple50  = Color(0xFF7A3ABF)
+val DarkGray  = Color(0xFF888888)

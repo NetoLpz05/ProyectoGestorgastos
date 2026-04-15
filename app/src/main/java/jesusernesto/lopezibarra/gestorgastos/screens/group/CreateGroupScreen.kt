@@ -175,7 +175,7 @@ fun CrearGrupoScreen(
     }
 }
 
-// ── Avatar del grupo (emoji apilados simulando el ícono) ───────────────────────
+// Avatar del grupo
 @Composable
 private fun GroupAvatar() {
     Box(

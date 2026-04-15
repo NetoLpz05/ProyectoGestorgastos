@@ -37,7 +37,6 @@ val cardEjemplo = GastoTotalCardData(
 
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ViajesScreen(
     cardData: GastoTotalCardData = cardEjemplo,
@@ -50,16 +49,18 @@ fun ViajesScreen(
     Scaffold(
         containerColor = Background,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Viajes",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = DarkNavy
-                    )
-                },
-                navigationIcon = {
+            // Reemplazo manual de TopAppBar para evitar ExperimentalMaterial3Api
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = Background
+            ) {
+                Row(
+                    modifier = Modifier
+                        .statusBarsPadding() // Respeta la barra de estado
+                        .height(64.dp)
+                        .padding(horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     IconButton(onClick = onAtras) {
                         Icon(
                             imageVector = Icons.Filled.ArrowBack,
@@ -67,9 +68,15 @@ fun ViajesScreen(
                             tint = Purple
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
-            )
+                    Text(
+                        text = "Viajes",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = DarkNavy,
+                        modifier = Modifier.padding(start = 12.dp)
+                    )
+                }
+            }
         }
     ) { paddingValues ->
 
@@ -79,7 +86,6 @@ fun ViajesScreen(
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp)
         ) {
-
             item {
                 Spacer(Modifier.height(12.dp))
                 GastoTotalCard(

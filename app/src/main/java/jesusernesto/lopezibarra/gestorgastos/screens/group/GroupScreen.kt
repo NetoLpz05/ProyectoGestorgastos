@@ -26,16 +26,27 @@ import androidx.compose.ui.unit.sp
 import jesusernesto.lopezibarra.gestorgastos.data.Grupo
 import jesusernesto.lopezibarra.gestorgastos.data.enums.CategoriaGrupo
 import jesusernesto.lopezibarra.gestorgastos.data.gruposEjemplo
+import jesusernesto.lopezibarra.gestorgastos.ui.theme.Azure40
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.Background
+import jesusernesto.lopezibarra.gestorgastos.ui.theme.Blue50
+import jesusernesto.lopezibarra.gestorgastos.ui.theme.Bronze40
+import jesusernesto.lopezibarra.gestorgastos.ui.theme.DarkGray
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.DarkNavy
+import jesusernesto.lopezibarra.gestorgastos.ui.theme.Emerald40
+import jesusernesto.lopezibarra.gestorgastos.ui.theme.Green50
+import jesusernesto.lopezibarra.gestorgastos.ui.theme.LightGray
+import jesusernesto.lopezibarra.gestorgastos.ui.theme.Orange50
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.Purple
+import jesusernesto.lopezibarra.gestorgastos.ui.theme.Purple50
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.PurpleGrey40
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.PurpleLight
+import jesusernesto.lopezibarra.gestorgastos.ui.theme.Red40
+import jesusernesto.lopezibarra.gestorgastos.ui.theme.Rose50
+import jesusernesto.lopezibarra.gestorgastos.ui.theme.Violet50
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.White
 
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MisGruposScreen(
     grupos: List<Grupo>           = gruposEjemplo,
@@ -46,15 +57,34 @@ fun MisGruposScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = { Text("Mis Grupos", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface) },
-                navigationIcon = {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.background,
+                shadowElevation = 0.dp
+            ) {
+                Row(
+                    modifier = Modifier
+                        .statusBarsPadding()
+                        .height(64.dp)
+                        .padding(horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     IconButton(onClick = onAtras) {
-                        Icon(Icons.Filled.ArrowBack, "Regresar", tint = MaterialTheme.colorScheme.onSurface)
+                        Icon(
+                            Icons.Filled.ArrowBack,
+                            contentDescription = "Regresar",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
-            )
+                    Text(
+                        text = "Mis Grupos",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(start = 12.dp)
+                    )
+                }
+            }
         }
     ) { padding ->
         LazyColumn(
@@ -175,20 +205,21 @@ private fun CrearGrupoCard(onClick: () -> Unit) {
 }
 
 private fun fondoIcono(cat: CategoriaGrupo) = when (cat) {
-    CategoriaGrupo.PAREJA   -> Color(0xFFFEECEC)
-    CategoriaGrupo.VIAJES   -> Color(0xFFFEF0E4)
-    CategoriaGrupo.CASA     -> Color(0xFFE4F0FE)
-    CategoriaGrupo.AMIGOS   -> Color(0xFFE4FEEE)
-    CategoriaGrupo.TRABAJO  -> Color(0xFFEEE4FE)
-    CategoriaGrupo.OTRO     -> Color(0xFFF2F2F7)
+    CategoriaGrupo.PAREJA  -> Rose50
+    CategoriaGrupo.VIAJES  -> Orange50
+    CategoriaGrupo.CASA    -> Blue50
+    CategoriaGrupo.AMIGOS  -> Green50
+    CategoriaGrupo.TRABAJO -> Violet50
+    CategoriaGrupo.OTRO    -> LightGray
 }
+
 private fun colorIcono(cat: CategoriaGrupo) = when (cat) {
-    CategoriaGrupo.PAREJA   -> Color(0xFFE05252)
-    CategoriaGrupo.VIAJES   -> Color(0xFFBF7B3A)
-    CategoriaGrupo.CASA     -> Color(0xFF3A7ABF)
-    CategoriaGrupo.AMIGOS   -> Color(0xFF3ABF7A)
-    CategoriaGrupo.TRABAJO  -> Color(0xFF7A3ABF)
-    CategoriaGrupo.OTRO     -> Color(0xFF888888)
+    CategoriaGrupo.PAREJA  -> Red40
+    CategoriaGrupo.VIAJES  -> Bronze40
+    CategoriaGrupo.CASA    -> Azure40
+    CategoriaGrupo.AMIGOS  -> Emerald40
+    CategoriaGrupo.TRABAJO -> Purple50
+    CategoriaGrupo.OTRO    -> DarkGray
 }
 private fun iconoVector(cat: CategoriaGrupo): ImageVector = when (cat) {
     CategoriaGrupo.PAREJA   -> Icons.Filled.Favorite
