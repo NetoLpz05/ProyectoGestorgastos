@@ -117,7 +117,7 @@ fun BudgetScreen(onBack: () -> Unit = {}){
             Spacer(modifier = Modifier.height(8.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "Distribucion por categoria", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f))
+                Text(text = "Distribución por categoría", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f))
                 Box(modifier = Modifier.clip(RoundedCornerShape(20.dp)).border(1.5.dp, PurpleLight, RoundedCornerShape(20.dp))){
                     Row {
                         Box(modifier = Modifier.clip(RoundedCornerShape(20.dp)).background(if (mostrarEnPesos) Purple else Color.Transparent).clickable{mostrarEnPesos = true}.padding(horizontal = 10.dp, vertical = 6.dp), contentAlignment = Alignment.Center) {

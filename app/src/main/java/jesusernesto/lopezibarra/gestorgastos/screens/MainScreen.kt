@@ -54,7 +54,7 @@ private fun todayUtcMillis(): Long{
     return cal.timeInMillis
 }
 
-private fun firstDayMounthUtcMillis(): Long{
+private fun firstDayMonthUtcMillis(): Long{
     val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
     cal.set(Calendar.DAY_OF_MONTH, 1)
     cal.set(Calendar.HOUR_OF_DAY, 0)
@@ -162,7 +162,7 @@ fun HomeScreen() {
     val categoriasFiltro = listOf("Todos", "Hogar", "Comida", "Transporte", "Compras")
     var categoriaSeleccionada by remember { mutableStateOf("Todos") }
     var busqueda by remember { mutableStateOf("") }
-    var fechaDesde by remember { mutableStateOf(firstDayMounthUtcMillis()) }
+    var fechaDesde by remember { mutableStateOf(firstDayMonthUtcMillis()) }
     var fechaHasta by remember { mutableStateOf(todayUtcMillis()) }
     var pickerAbierto by remember { mutableStateOf<String?>(null) }
 

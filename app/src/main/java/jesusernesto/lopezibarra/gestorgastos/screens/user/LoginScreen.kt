@@ -31,12 +31,12 @@ fun LoginScreen(onLoginClick: () -> Unit, onRegisterClick: () -> Unit, onForgotP
     Column(modifier = Modifier.fillMaxSize().background(Color.White).padding(horizontal = 45.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Box(modifier = Modifier.size(162.dp).clip(RoundedCornerShape(16.dp)).background(PurpleLight), contentAlignment = Alignment.Center) {
             Text(
-                text = "aqui iria la imagen pero tengo weba de ponerla ahorita jaja",
+                text = "aquí iría la imagen pero tengo weba de ponerla ahorita jaja",
                 fontSize = 72.sp
             )
         }
 
-        Text(text = "Bienvenido!", fontWeight = FontWeight.Bold, fontSize = 32.sp,
+        Text(text = "¡Bienvenido!", fontWeight = FontWeight.Bold, fontSize = 32.sp,
             color = DarkNavy, modifier = Modifier.padding(top = 0.dp, bottom = 32.dp), textAlign = TextAlign.Center)
 
         Text(text = "Correo Electrónico", fontWeight = FontWeight.SemiBold, fontSize = 15.sp,
@@ -93,12 +93,12 @@ fun LoginScreen(onLoginClick: () -> Unit, onRegisterClick: () -> Unit, onForgotP
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(text = buildAnnotatedString { append("¿No tienes cuenta? ")
-                withStyle(SpanStyle(color = Purple)) { append("Registrate") } },
+                withStyle(SpanStyle(color = Purple)) { append("Regístrate") } },
             fontWeight = FontWeight.SemiBold, fontSize = 15.sp, modifier = Modifier.clickable { onRegisterClick() })
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        Text(text = "Olvide mi contraseña", fontWeight = FontWeight.SemiBold,
+        Text(text = "Olvidé mi contraseña", fontWeight = FontWeight.SemiBold,
             fontSize = 15.sp, color = Purple, modifier = Modifier
                 .clickable { onForgotPasswordClick() }.padding(bottom = 24.dp))
     }

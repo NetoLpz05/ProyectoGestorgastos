@@ -86,7 +86,7 @@ fun AlertasScreen(onBack: () -> Unit = {}){
             Spacer(modifier = Modifier.height(20.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "Umbral de Notificacion", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = DarkNavy)
+                Text(text = "Umbral de Notificación", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = DarkNavy)
                 Text(text = "${(umbral * 100).toInt()}%", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = DarkNavy)
             }
 
@@ -107,7 +107,7 @@ fun AlertasScreen(onBack: () -> Unit = {}){
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    Text(text = "\"Notificame cuando el presupuesto llegue al ${(umbral * 100).toInt()}%\"",
+                    Text(text = "\"Notifícame cuando el presupuesto llegue al ${(umbral * 100).toInt()}%\"",
                         fontSize = 13.sp, color = TextGray, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
                         textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                 }

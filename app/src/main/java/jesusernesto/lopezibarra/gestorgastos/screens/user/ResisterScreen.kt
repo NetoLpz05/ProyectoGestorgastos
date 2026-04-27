@@ -48,7 +48,7 @@ fun RegisterScreen(onRegisterClick: () -> Unit, onLoginClick: () -> Unit) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        RegisterLabel("Correo electrónico")
+        RegisterLabel("Correo Electrónico")
         RegisterTextField(
             value = email,
             onValueChange = { email = it },
@@ -57,7 +57,7 @@ fun RegisterScreen(onRegisterClick: () -> Unit, onLoginClick: () -> Unit) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        RegisterLabel("Fecha de nacimiento")
+        RegisterLabel("Fecha de Nacimiento")
         OutlinedTextField(value = birthDate, onValueChange = { birthDate = it },
             modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(10.dp),
             leadingIcon = {

@@ -55,12 +55,12 @@ import jesusernesto.lopezibarra.gestorgastos.ui.theme.TextGray
 fun GraphicScreen(
     onBack: () -> Unit = {}
 ){
-    val periodos = listOf("Dia", "Semanal", "Quincenal")
-    var periodosSeleccionados by remember { mutableStateOf("Dia") }
+    val periodos = listOf("Día", "Semanal", "Quincenal")
+    var periodosSeleccionados by remember { mutableStateOf("Día") }
     val fechaSeleccionada = "24 Mar 2026"
 
     Column (modifier = Modifier.fillMaxSize().background(Color.White)){
-        AppTopBar(title = "Graficas", onBack = onBack)
+        AppTopBar(title = "Gráficas", onBack = onBack)
 
         Column (modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)){
             Spacer(modifier = Modifier.height(12.dp))
@@ -86,7 +86,7 @@ fun GraphicScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text(text = "Categorias", fontSize = 14.sp, color = TextGray, fontWeight = FontWeight.Medium, modifier = Modifier.padding(bottom = 10.dp))
+            Text(text = "Categorías", fontSize = 14.sp, color = TextGray, fontWeight = FontWeight.Medium, modifier = Modifier.padding(bottom = 10.dp))
 
             CategoriasGrid(categorias = DummyData.categorias)
 
