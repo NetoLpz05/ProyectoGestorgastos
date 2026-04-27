@@ -23,9 +23,10 @@ import jesusernesto.lopezibarra.gestorgastos.ui.theme.White
 data class GastoTotalCardData(
     val titulo: String = "GASTO TOTAL\nCOMPARTIDO",
     val montoTotal: String = "$1,200.00",
-    val totalParticipantes: Int = 5
+    val totalParticipantes: Int = 5,
+    val gastosLabel: String = "Gastos",
+    val gastosTotal: String = "$503"
 )
-
 
 @Composable
 fun GastoTotalCard(
@@ -77,6 +78,24 @@ fun GastoTotalCard(
                 )
             }
         }
+
+        Column(
+            modifier = Modifier.align(Alignment.BottomEnd),
+            horizontalAlignment = Alignment.End
+        ) {
+            Text(
+                text = data.gastosLabel,
+                color = Color(0xFFFF6B9D),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                text = data.gastosTotal,
+                color = Color(0xFFFF6B9D),
+                fontSize = 27.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
 
@@ -86,7 +105,8 @@ fun GastoTotalCardPreview() {
     GastoTotalCard(
         data = GastoTotalCardData(
             montoTotal = "$1,200.00",
-            totalParticipantes = 5
+            totalParticipantes = 5,
+            gastosTotal = "$503"
         ),
         modifier = Modifier.padding(16.dp)
     )
