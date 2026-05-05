@@ -21,6 +21,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.material3.Text
+import androidx.compose.ui.text.input.*
 
 @Composable
 fun LoginScreen(onLoginClick: () -> Unit, onRegisterClick: () -> Unit, onForgotPasswordClick: () -> Unit) {
@@ -29,6 +33,9 @@ fun LoginScreen(onLoginClick: () -> Unit, onRegisterClick: () -> Unit, onForgotP
     var passwordVisible by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize().background(Color.White).padding(horizontal = 45.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+
+        Spacer(Modifier.padding(5.dp))
+
         Box(modifier = Modifier.size(162.dp).clip(RoundedCornerShape(16.dp)).background(PurpleLight), contentAlignment = Alignment.Center) {
             Text(
                 text = "aquí iría la imagen pero tengo weba de ponerla ahorita jaja",
@@ -37,7 +44,8 @@ fun LoginScreen(onLoginClick: () -> Unit, onRegisterClick: () -> Unit, onForgotP
         }
 
         Text(text = "¡Bienvenido!", fontWeight = FontWeight.Bold, fontSize = 32.sp,
-            color = DarkNavy, modifier = Modifier.padding(top = 0.dp, bottom = 32.dp), textAlign = TextAlign.Center)
+
+        Spacer(Modifier.padding(18.dp))
 
         Text(text = "Correo Electrónico", fontWeight = FontWeight.SemiBold, fontSize = 15.sp,
             color = TextGray, modifier = Modifier.align(Alignment.Start).padding(bottom = 6.dp))
@@ -61,12 +69,28 @@ fun LoginScreen(onLoginClick: () -> Unit, onRegisterClick: () -> Unit, onForgotP
 
         Text(text = "Contraseña", fontWeight = FontWeight.SemiBold, fontSize = 15.sp,
             color = TextGray, modifier = Modifier.align(Alignment.Start).padding(bottom = 6.dp))
-        OutlinedTextField(value = password, onValueChange = { password = it }, modifier = Modifier.fillMaxWidth().height(54.dp),
-            shape = RoundedCornerShape(10.dp), singleLine = true, colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = PurpleLight, focusedBorderColor = Purple,
-                unfocusedContainerColor = Color.White, focusedContainerColor = Color.White
-            )
-        )
+        OutlinedTextField(value = password, onValueChange = { password = it },
+            modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(10.dp),
+            singleLine = true,
+
+            visualTransformation = if (passwordVisible)
+                VisualTransformation.None
+            else
+                PasswordVisualTransformation(),
+
+            trailingIcon = {
+                val icon = if (passwordVisible)
+                    Icons.Filled.VisibilityOff
+                else
+                    Icons.Filled.Visibility
+
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(imageVector = icon, contentDescription = "Mirar Contraseña")
+                }
+            },
+
+            colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = PurpleLight, focusedBorderColor = Purple,
+                unfocusedContainerColor = Color.White, focusedContainerColor = Color.White))
 
         Spacer(modifier = Modifier.weight(1f))
 
@@ -85,7 +109,7 @@ fun LoginScreen(onLoginClick: () -> Unit, onRegisterClick: () -> Unit, onForgotP
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(containerColor = DarkNavy)) {
             Spacer(modifier = Modifier.width(8.dp))
-            Icon(imageVector = Icons.Outlined.Fingerprint, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+            Icon(imageVector = Icons.Outlined.Fingerprint, contentDescription = null, tint = Color.White, modifier = Modifier.size(25.dp).padding(0.dp))
             Text(text = "Acceso Biométrico", fontWeight = FontWeight.SemiBold,
                 fontSize = 16.sp, color = Color.White)
         }

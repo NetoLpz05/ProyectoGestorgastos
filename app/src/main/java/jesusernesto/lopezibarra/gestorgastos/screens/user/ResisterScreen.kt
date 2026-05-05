@@ -2,6 +2,7 @@ package jesusernesto.lopezibarra.gestorgastos.screens.user
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
@@ -16,7 +17,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.ui.text.input.*
+import java.text.SimpleDateFormat
+import java.util.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(onRegisterClick: () -> Unit, onLoginClick: () -> Unit) {
     var nombre by remember { mutableStateOf("") }
@@ -25,14 +32,23 @@ fun RegisterScreen(onRegisterClick: () -> Unit, onLoginClick: () -> Unit) {
     var gender by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
+    val genderOptions = listOf("Hombre", "Mujer", "Otro")
 
     Column(
         modifier = Modifier.fillMaxSize().background(Color.White).verticalScroll(rememberScrollState()).padding(horizontal = 45.dp),
         horizontalAlignment = Alignment.CenterHorizontally) {
 
+        Spacer(Modifier.padding(5.dp))
+
         Box(modifier = Modifier.padding(top = 0.dp).size(162.dp).background(PurpleLight, RoundedCornerShape(16.dp)), contentAlignment = Alignment.Center) {
             Text("icono de la app :p", fontSize = 72.sp)
         }
+
+        Spacer(Modifier.padding(5.dp))
 
         Text(
             text = "Crear Cuenta",
@@ -57,31 +73,143 @@ fun RegisterScreen(onRegisterClick: () -> Unit, onLoginClick: () -> Unit) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
+
         RegisterLabel("Fecha de Nacimiento")
         OutlinedTextField(value = birthDate, onValueChange = { birthDate = it },
             modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(10.dp),
-            leadingIcon = {
-                Icon(Icons.Outlined.CalendarMonth, contentDescription = null, tint = Purple)
-            },
-            singleLine = true, colors = registerTextFieldColors())
+
+        RegisterLabel("Fecha de nacimiento")
+
+        OutlinedTextField(
+            value = birthDate,
+            onValueChange = {},
+            readOnly = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(54.dp)
+                .clickable { showDatePicker = true },
+            shape = RoundedCornerShape(10.dp),
+
+        if (showDatePicker) {
+            val datePickerState = rememberDatePickerState()
+
+            DatePickerDialog(
+                onDismissRequest = { showDatePicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        val millis = datePickerState.selectedDateMillis
+                        millis?.let {
+                            val sdf = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+                            birthDate = sdf.format(Date(it))
+                        }
+                        showDatePicker = false
+                    }) {
+                        Text("OK")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDatePicker = false }) {
+                        Text("Cancelar")
+                    }
+                }
+            ) {
+                DatePicker(state = datePickerState)
+            }
+        }
 
         Spacer(modifier = Modifier.height(12.dp))
 
         RegisterLabel("Género")
-        RegisterTextField(value = gender, onValueChange = { gender = it }, placeholder = "Seleccionar género")
+
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded }
+        ) {
+            OutlinedTextField(
+                value = gender,
+                onValueChange = {},
+                readOnly = true,
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
+                    .height(54.dp),
+                placeholder = { Text("Seleccionar género") },
+                shape = RoundedCornerShape(10.dp),
+                colors = registerTextFieldColors()
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                genderOptions.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option) },
+                        onClick = {
+                            gender = option
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(12.dp))
 
         RegisterLabel("Contraseña")
-        OutlinedTextField(value = password, onValueChange = { password = it }, modifier = Modifier.fillMaxWidth().height(54.dp),
-            shape = RoundedCornerShape(10.dp), singleLine = true, colors = registerTextFieldColors())
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            modifier = Modifier.fillMaxWidth().height(54.dp),
+            shape = RoundedCornerShape(10.dp),
+            singleLine = true,
 
+            visualTransformation = if (passwordVisible)
+                VisualTransformation.None
+            else
+                PasswordVisualTransformation(),
+
+            trailingIcon = {
+                val icon = if (passwordVisible)
+                    Icons.Filled.VisibilityOff
+                else
+                    Icons.Filled.Visibility
+
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(icon, contentDescription = null)
+                }
+            },
+
+            colors = registerTextFieldColors()
+        )
         Spacer(modifier = Modifier.height(12.dp))
 
         RegisterLabel("Confirmar Contraseña")
-        OutlinedTextField(value = confirmPassword, onValueChange = { confirmPassword = it },
-            modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(10.dp),
-            singleLine = true, colors = registerTextFieldColors())
+        OutlinedTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            modifier = Modifier.fillMaxWidth().height(54.dp),
+            shape = RoundedCornerShape(10.dp),
+            singleLine = true,
+
+            visualTransformation = if (confirmPasswordVisible)
+                VisualTransformation.None
+            else
+                PasswordVisualTransformation(),
+
+            trailingIcon = {
+                val icon = if (confirmPasswordVisible)
+                    Icons.Filled.VisibilityOff
+                else
+                    Icons.Filled.Visibility
+
+                IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                    Icon(icon, contentDescription = null)
+                }
+            },
+
+            colors = registerTextFieldColors()
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
 
