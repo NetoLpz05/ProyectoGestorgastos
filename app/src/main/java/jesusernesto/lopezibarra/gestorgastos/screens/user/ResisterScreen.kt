@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -65,36 +64,20 @@ fun RegisterScreen(onRegisterClick: () -> Unit, onLoginClick: () -> Unit) {
         Spacer(modifier = Modifier.height(12.dp))
 
         RegisterLabel("Correo Electrónico")
-        RegisterTextField(
-            value = email,
-            onValueChange = { email = it },
-            placeholder = "correo@ejemplo.com",
-        )
+        RegisterTextField(value = email, onValueChange = { email = it }, placeholder = "correo@ejemplo.com")
 
         Spacer(modifier = Modifier.height(12.dp))
 
-
-        RegisterLabel("Fecha de Nacimiento")
-        OutlinedTextField(value = birthDate, onValueChange = { birthDate = it },
-            modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(10.dp),
-
         RegisterLabel("Fecha de nacimiento")
 
-        OutlinedTextField(
-            value = birthDate,
-            onValueChange = {},
-            readOnly = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(54.dp)
-                .clickable { showDatePicker = true },
-            shape = RoundedCornerShape(10.dp),
+        OutlinedTextField(value = birthDate, onValueChange = {}, readOnly = true,
+            modifier = Modifier.fillMaxWidth().height(54.dp).clickable { showDatePicker = true },
+            shape = RoundedCornerShape(10.dp))
 
         if (showDatePicker) {
             val datePickerState = rememberDatePickerState()
 
-            DatePickerDialog(
-                onDismissRequest = { showDatePicker = false },
+            DatePickerDialog(onDismissRequest = { showDatePicker = false },
                 confirmButton = {
                     TextButton(onClick = {
                         val millis = datePickerState.selectedDateMillis
@@ -121,35 +104,18 @@ fun RegisterScreen(onRegisterClick: () -> Unit, onLoginClick: () -> Unit) {
 
         RegisterLabel("Género")
 
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded }
-        ) {
-            OutlinedTextField(
-                value = gender,
-                onValueChange = {},
-                readOnly = true,
-                modifier = Modifier
-                    .menuAnchor()
-                    .fillMaxWidth()
-                    .height(54.dp),
+        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
+            OutlinedTextField(value = gender, onValueChange = {}, readOnly = true,
+                modifier = Modifier.fillMaxWidth().height(54.dp),
                 placeholder = { Text("Seleccionar género") },
-                shape = RoundedCornerShape(10.dp),
-                colors = registerTextFieldColors()
-            )
+                shape = RoundedCornerShape(10.dp), colors = registerTextFieldColors())
 
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
+            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 genderOptions.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(option) },
-                        onClick = {
-                            gender = option
+                    DropdownMenuItem(text = { Text(option) },
+                        onClick = { gender = option
                             expanded = false
-                        }
-                    )
+                        })
                 }
             }
         }
@@ -157,11 +123,8 @@ fun RegisterScreen(onRegisterClick: () -> Unit, onLoginClick: () -> Unit) {
         Spacer(modifier = Modifier.height(12.dp))
 
         RegisterLabel("Contraseña")
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            modifier = Modifier.fillMaxWidth().height(54.dp),
-            shape = RoundedCornerShape(10.dp),
+        OutlinedTextField(value = password, onValueChange = { password = it },
+            modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(10.dp),
             singleLine = true,
 
             visualTransformation = if (passwordVisible)
@@ -180,17 +143,14 @@ fun RegisterScreen(onRegisterClick: () -> Unit, onLoginClick: () -> Unit) {
                 }
             },
 
-            colors = registerTextFieldColors()
-        )
+            colors = registerTextFieldColors())
+
         Spacer(modifier = Modifier.height(12.dp))
 
         RegisterLabel("Confirmar Contraseña")
-        OutlinedTextField(
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
+        OutlinedTextField(value = confirmPassword, onValueChange = { confirmPassword = it },
             modifier = Modifier.fillMaxWidth().height(54.dp),
-            shape = RoundedCornerShape(10.dp),
-            singleLine = true,
+            shape = RoundedCornerShape(10.dp), singleLine = true,
 
             visualTransformation = if (confirmPasswordVisible)
                 VisualTransformation.None
@@ -208,8 +168,7 @@ fun RegisterScreen(onRegisterClick: () -> Unit, onLoginClick: () -> Unit) {
                 }
             },
 
-            colors = registerTextFieldColors()
-        )
+            colors = registerTextFieldColors())
 
         Spacer(modifier = Modifier.height(24.dp))
 
