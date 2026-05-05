@@ -65,10 +65,11 @@ fun ProfileScreen(
                 Box(modifier = Modifier.size(114.dp).clip(CircleShape).background(PurpleLight).border(3.dp, PurpleLight, CircleShape), contentAlignment = Alignment.Center) {
                     Image(painter = painterResource(id = user.pfp), contentDescription = "Foto de perfil", modifier = Modifier.fillMaxSize().clip(CircleShape))
                 }
-                Text(text = "Editar Foto", color = Purple, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 6.dp))
+
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(user.nombre, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground)
                 Text(user.correo, fontSize = 14.sp, color = TextGray)
+                Text(text = "Editar Foto", color = Purple, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 6.dp))
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -98,7 +99,7 @@ fun ProfileScreen(
                     .border(2.dp, PurpleLight, RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surface)) {
                 Row(modifier = Modifier.fillMaxWidth().height(58.dp)
                         .padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Outlined.Fingerprint, contentDescription = null, tint = Purple, modifier = Modifier.size(22.dp))
+                    Icon(Icons.Outlined.Fingerprint, contentDescription = null, tint = Purple, modifier = Modifier.size(30.dp))
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Biometría", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)

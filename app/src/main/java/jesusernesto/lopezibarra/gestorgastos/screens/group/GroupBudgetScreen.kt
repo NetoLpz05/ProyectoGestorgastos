@@ -17,9 +17,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import jesusernesto.lopezibarra.gestorgastos.data.GastoReciente
+import jesusernesto.lopezibarra.gestorgastos.dummy.GastoReciente
 import jesusernesto.lopezibarra.gestorgastos.data.enums.CategoriaGasto
-import jesusernesto.lopezibarra.gestorgastos.data.gastosEjemplo
+import jesusernesto.lopezibarra.gestorgastos.dummy.gastosEjemplo
 import jesusernesto.lopezibarra.gestorgastos.screens.components.GastoTotalCard
 import jesusernesto.lopezibarra.gestorgastos.screens.components.GastoTotalCardData
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.Background

@@ -1,4 +1,4 @@
-package jesusernesto.lopezibarra.gestorgastos.data
+package jesusernesto.lopezibarra.gestorgastos.dummy
 
 import jesusernesto.lopezibarra.gestorgastos.data.enums.CategoriaGasto
 

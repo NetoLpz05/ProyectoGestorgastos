@@ -39,7 +39,10 @@ import jesusernesto.lopezibarra.gestorgastos.screens.components.BottomNavBar
 import jesusernesto.lopezibarra.gestorgastos.screens.group.CrearGrupoScreen
 import jesusernesto.lopezibarra.gestorgastos.screens.group.MisGruposScreen
 import jesusernesto.lopezibarra.gestorgastos.screens.group.ViajesScreen
+import jesusernesto.lopezibarra.gestorgastos.screens.income_expenses.AddCardScreen
 import jesusernesto.lopezibarra.gestorgastos.screens.income_expenses.NewMovementScreen
+import jesusernesto.lopezibarra.gestorgastos.screens.user.ForgotPasswordScreen
+import jesusernesto.lopezibarra.gestorgastos.screens.user.LoginScreen
 import jesusernesto.lopezibarra.gestorgastos.screens.user.ProfileScreen
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
 import java.text.SimpleDateFormat
@@ -144,9 +147,32 @@ fun MainScreen(
             composable("NuevoMovimiento") {
                 NewMovementScreen(
                     onBack = { navController.popBackStack() },
+                    onSave = { navController.popBackStack() },
+                    onNavigateToNewCard = {
+                        navController.navigate("AddCard")
+                    }
+                )
+            }
+
+            composable("AddCard") {
+                AddCardScreen(
+                    onBack = { navController.popBackStack() },
                     onSave = { navController.popBackStack() }
                 )
             }
+
+            composable("ForgotPassword") {
+                ForgotPasswordScreen(
+                    onSendClick = { email ->
+                    },
+                    onBackToLogin = {
+                        navController.navigate("Login") {
+                            popUpTo("Login") { inclusive = true }
+                        }
+                    }
+                )
+            }
+
             composable("DetalleMovimiento/{id}") { backStackEntry ->
                 val id = backStackEntry.arguments?.getString("id")?.toIntOrNull()
                 val transaccion = DummyData.transacciones.find { it.id == id }
@@ -265,7 +291,7 @@ fun HomeScreen(
             }
             Spacer(modifier = Modifier.width(10.dp))
             Column {
-                Text(text = DummyData.mesActual, fontSize = 12.sp, color = TextGray)
+                Text(text = DummyData.mesActual, fontSize = 20.sp, color = TextGray)
                 Text(
                     text = "Mis finanzas",
                     fontSize = 18.sp,

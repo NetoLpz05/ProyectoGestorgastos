@@ -24,15 +24,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import jesusernesto.lopezibarra.gestorgastos.dummy.DummyData
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
+import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.input.KeyboardType
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit) {
+fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit, onNavigateToNewCard: () -> Unit) {
     var isGasto by remember { mutableStateOf(true) }
     var amount by remember { mutableStateOf("0.00") }
     var description by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("22/03/2026") }
     var selectedCategory by remember { mutableStateOf(1) }
     var selectedPayment by remember { mutableStateOf(0) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var isEditingAmount by remember { mutableStateOf(false) }
+    var showPaymentSheet by remember { mutableStateOf(false) }
 
     val accent = if (isGasto) RedGasto else GreenIncome
 
@@ -97,12 +108,34 @@ fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit) {
 
             Text(text = if (isGasto) "MONTO DEL GASTO" else "MONTO DEL INGRESO", fontWeight = FontWeight.Bold, fontSize = 12.sp,
                 color = TextGray, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+
+            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                Text("$", fontWeight = FontWeight.Bold, fontSize = 40.sp, color = MaterialTheme.colorScheme.onSurface)
+                Text("$", fontWeight = FontWeight.Bold, fontSize = 40.sp)
+
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(amount, fontWeight = FontWeight.Bold, fontSize = 40.sp, color = MaterialTheme.colorScheme.onSurface)
+
+                if (isEditingAmount) {
+
+                    OutlinedTextField(value = amount,
+                        onValueChange = {
+                            if (it.matches(Regex("^\\d*\\.?\\d{0,2}\$"))) {
+                                amount = it
+                            }
+                        },
+                        textStyle = LocalTextStyle.current.copy(fontSize = 40.sp, fontWeight = FontWeight.Bold),
+                        singleLine = true, modifier = Modifier.width(140.dp),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = Color.Transparent, focusedBorderColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent, focusedContainerColor = Color.Transparent))
+                } else {
+
+                    Text(text = amount, fontWeight = FontWeight.Bold, fontSize = 40.sp,
+                        modifier = Modifier.clickable {
+                            isEditingAmount = true
+                        }
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -115,36 +148,48 @@ fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit) {
             Spacer(modifier = Modifier.height(12.dp))
 
             SectionLabel("Fecha")
-            OutlinedTextField(
-                value = date,
-                onValueChange = { date = it },
-                modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().height(54.dp),
-                shape = RoundedCornerShape(10.dp),
-                singleLine = true,
+
+            OutlinedTextField(value = date, onValueChange = {}, readOnly = true,
+                modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().height(54.dp).clickable { showDatePicker = true },
+                shape = RoundedCornerShape(10.dp), singleLine = true,
                 leadingIcon = {
                     Icon(Icons.Outlined.CalendarMonth, contentDescription = null, tint = Purple)
                 },
-                colors = movementFieldColors()
-            )
+                colors = movementFieldColors())
+
+            if (showDatePicker) {
+                val datePickerState = rememberDatePickerState()
+
+                DatePickerDialog(
+                    onDismissRequest = { showDatePicker = false },
+                    confirmButton = { TextButton(onClick = {
+                            val millis = datePickerState.selectedDateMillis
+                            millis?.let {
+                                val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                                date = sdf.format(Date(it))
+                            }
+                            showDatePicker = false
+                        }) {
+                            Text("OK")
+                        }
+                    },
+                    dismissButton = { TextButton(onClick = { showDatePicker = false }) {
+                            Text("Cancelar")
+                        }
+                    }) {
+                    DatePicker(state = datePickerState)
+                }
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
             SectionLabel("Categoría")
-            Row(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                DummyData.categorias.forEachIndexed { index, (emoji, label) ->
-                    CategoryItem(
-                        emoji = emoji,
-                        label = label,
-                        selected = selectedCategory == index,
-                        onClick = { selectedCategory = index }
-                    )
-                }
-            }
+
+            CategoryGrid(
+                categories = DummyData.categorias,
+                selectedIndex = selectedCategory,
+                onItemClick = { selectedCategory = it }
+            )
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -178,7 +223,7 @@ fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit) {
                     fontSize = 12.sp,
                     color = Color.White.copy(alpha = 0.5f),
                     modifier = Modifier.clickable {
-                        selectedPayment = (selectedPayment + 1) % DummyData.formasPago.size
+                        showPaymentSheet = true
                     }
                 )
             }
@@ -190,7 +235,7 @@ fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit) {
                 Icon(Icons.Outlined.LocationOn, contentDescription = null, tint = Purple, modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.width(10.dp))
                 Text("Agregar ubicación...", fontWeight = FontWeight.Bold, fontSize = 12.sp,
-                    color = TextGray, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
+                    color = TextGray, fontStyle = FontStyle.Italic)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -212,6 +257,24 @@ fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit) {
             }
 
             Spacer(modifier = Modifier.height(24.dp))
+        }
+
+        if (showPaymentSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showPaymentSheet = false }
+            ) {
+                FormaPagoCard(
+                    selectedIndex = selectedPayment,
+                    onSelect = { index ->
+                        selectedPayment = index
+                        showPaymentSheet = false
+                    },
+                    onAddCard = {
+                        showPaymentSheet = false
+                        onNavigateToNewCard()
+                    }
+                )
+            }
         }
     }
 }
@@ -242,8 +305,31 @@ private fun CategoryItem(
             Text(emoji, fontSize = 16.sp)
         }
         Spacer(modifier = Modifier.height(4.dp))
-        Text(text = label, fontSize = 9.sp, fontWeight = FontWeight.Bold, color = if (selected) Purple else TextGray,
+        Text(text = label, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = if (selected) Purple else TextGray,
             textAlign = TextAlign.Center, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+}
+
+@Composable
+fun CategoryGrid(
+    categories: List<Pair<String, String>>,
+    selectedIndex: Int,
+    onItemClick: (Int) -> Unit
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        modifier = Modifier.fillMaxWidth().height(140.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        itemsIndexed(categories) { index, item ->
+            CategoryItem(
+                emoji = item.first,
+                label = item.second,
+                selected = index == selectedIndex,
+                onClick = { onItemClick(index) }
+            )
+        }
     }
 }
 
@@ -296,7 +382,6 @@ fun FormaPagoCard(selectedIndex: Int, onSelect: (Int) -> Unit, onAddCard: () -> 
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        //Botón para añadir la tarjeta
         Row(modifier = Modifier.fillMaxWidth().height(46.dp).clip(RoundedCornerShape(10.dp))
             .border(2.dp, Purple, RoundedCornerShape(10.dp)).clickable { onAddCard() }.padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
@@ -310,11 +395,15 @@ fun FormaPagoCard(selectedIndex: Int, onSelect: (Int) -> Unit, onAddCard: () -> 
     }
 }
 
-@Preview(showBackground = true,)
+@Preview(showBackground = true)
 @Composable
 fun NewMovementScreenPreview() {
     GestorGastosTheme {
-        NewMovementScreen(onBack = {}, onSave = {})
+        NewMovementScreen(
+            onBack = {},
+            onSave = {},
+            onNavigateToNewCard = {}
+        )
     }
 }
 
