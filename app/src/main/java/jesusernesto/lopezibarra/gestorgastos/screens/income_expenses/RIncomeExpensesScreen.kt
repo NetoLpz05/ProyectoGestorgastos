@@ -163,19 +163,19 @@ fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit, onNavigateToNewCar
                 DatePickerDialog(
                     onDismissRequest = { showDatePicker = false },
                     confirmButton = { TextButton(onClick = {
-                            val millis = datePickerState.selectedDateMillis
-                            millis?.let {
-                                val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                                date = sdf.format(Date(it))
-                            }
-                            showDatePicker = false
-                        }) {
-                            Text("OK")
+                        val millis = datePickerState.selectedDateMillis
+                        millis?.let {
+                            val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                            date = sdf.format(Date(it))
                         }
+                        showDatePicker = false
+                    }) {
+                        Text("OK")
+                    }
                     },
                     dismissButton = { TextButton(onClick = { showDatePicker = false }) {
-                            Text("Cancelar")
-                        }
+                        Text("Cancelar")
+                    }
                     }) {
                     DatePicker(state = datePickerState)
                 }
@@ -231,7 +231,7 @@ fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit, onNavigateToNewCar
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().height(47.dp).clip(RoundedCornerShape(10.dp))
-                    .border(2.dp, PurpleLight, RoundedCornerShape(10.dp), ).padding(horizontal = 16.dp).background(MaterialTheme.colorScheme.surface), verticalAlignment = Alignment.CenterVertically) {
+                .border(2.dp, PurpleLight, RoundedCornerShape(10.dp), ).padding(horizontal = 16.dp).background(MaterialTheme.colorScheme.surface), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Outlined.LocationOn, contentDescription = null, tint = Purple, modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.width(10.dp))
                 Text("Agregar ubicación...", fontWeight = FontWeight.Bold, fontSize = 12.sp,
@@ -348,7 +348,7 @@ fun FormaPagoCard(selectedIndex: Int, onSelect: (Int) -> Unit, onAddCard: () -> 
     Column(
         modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).padding(horizontal = 20.dp).padding(bottom = 32.dp)) {
         Box(modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 16.dp).size(width = 40.dp, height = 4.dp)
-                .clip(RoundedCornerShape(2.dp)).background(PurpleLight))
+            .clip(RoundedCornerShape(2.dp)).background(PurpleLight))
 
         Text(text = "Selecciona el método", fontWeight = FontWeight.Bold, fontSize = 18.sp,
             color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp))
@@ -356,13 +356,13 @@ fun FormaPagoCard(selectedIndex: Int, onSelect: (Int) -> Unit, onAddCard: () -> 
         DummyData.formasPago.forEachIndexed { index, (emoji, label, detail) ->
             val isSelected = selectedIndex == index
             Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)
-                    .clip(RoundedCornerShape(12.dp)).background(if (isSelected) Purple else PurpleLight.copy(alpha = 0.2f))
-                    .clickable { onSelect(index) }.padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+                .clip(RoundedCornerShape(12.dp)).background(if (isSelected) Purple else PurpleLight.copy(alpha = 0.2f))
+                .clickable { onSelect(index) }.padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
                 Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp))
-                        .background(
-                            if (isSelected) Color.White.copy(alpha = 0.2f)
-                            else Color.White
-                        ), contentAlignment = Alignment.Center) {
+                    .background(
+                        if (isSelected) Color.White.copy(alpha = 0.2f)
+                        else Color.White
+                    ), contentAlignment = Alignment.Center) {
                     Text(emoji, fontSize = 20.sp)
                 }
 

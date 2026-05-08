@@ -43,7 +43,11 @@ fun ProfileScreen(
         EditProfileScreen(
             user = user,
             onBack = { estaEditando = false },
-            onSave = { estaEditando = false }
+            onSave = { estaEditando = false },
+            onEditNotifications = {
+                estaEditando = false
+                estaEnAlertas = true
+            }
         )
         return
     }
@@ -170,7 +174,8 @@ fun ProfileScreen(
 fun EditProfileScreen(
     user: UserProfile,
     onBack: () -> Unit,
-    onSave: () -> Unit
+    onSave: () -> Unit,
+    onEditNotifications: () -> Unit
 ) {
     var name by remember { mutableStateOf(user.nombre) }
     var phone by remember { mutableStateOf(user.telefono) }
@@ -203,6 +208,29 @@ fun EditProfileScreen(
             Spacer(modifier = Modifier.height(4.dp))
             EditField(value = phone, onValueChange = { phone = it }, icon = Icons.Outlined.Phone)
 
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // --- NUEVA SECCIÓN DE SEGURIDAD Y PRIVACIDAD ---
+            TituloSeccion("SEGURIDAD Y PRIVACIDAD")
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .border(1.dp, PurpleLight, RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .clickable { onEditNotifications() } // Navega a la pantalla de alertas
+            ) {
+                Row(modifier = Modifier.fillMaxWidth().height(58.dp)
+                    .padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Outlined.Notifications, contentDescription = null, tint = Purple, modifier = Modifier.size(27.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Editar Notificaciones", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+                        Text("ALERTAS DE PRESUPUESTO", fontSize = 11.sp, color = TextGray)
+                    }
+                }
+            }
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
@@ -241,6 +269,9 @@ private fun EditField(value: String, onValueChange: (String) -> Unit, icon: Imag
     OutlinedTextField(value = value,
         onValueChange = onValueChange, modifier = Modifier.fillMaxWidth().height(54.dp),
         shape = RoundedCornerShape(10.dp), singleLine = true,
+        leadingIcon = {
+            Icon(imageVector = icon, contentDescription = null, tint = Purple, modifier = Modifier.size(24.dp))
+        },
         colors = OutlinedTextFieldDefaults.colors(
             unfocusedBorderColor = PurpleLight,
             focusedBorderColor = Purple,
@@ -277,7 +308,8 @@ fun EditProfileScreenPreview() {
         EditProfileScreen(
             user = mockUser,
             onBack = { },
-            onSave = { }
+            onSave = { },
+            onEditNotifications = {}
         )
     }
 }

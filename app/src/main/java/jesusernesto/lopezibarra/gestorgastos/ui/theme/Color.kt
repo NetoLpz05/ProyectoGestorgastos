@@ -24,7 +24,7 @@ val BackgroundLight = Color(0xFFF5F5F5)
 val TextSubtle     = Color(0xCCFFFFFF)
 val RedGasto = Color(0xFFFF5B5E)
 
-
+val ColorIconoNaranja = Color(0xFFE67E22)
 val Rose50    = Color(0xFFFEECEC)
 val Orange50  = Color(0xFFFEF0E4)
 val Blue50    = Color(0xFFE4F0FE)
