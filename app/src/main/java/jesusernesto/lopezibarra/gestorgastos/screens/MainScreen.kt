@@ -38,6 +38,7 @@ import jesusernesto.lopezibarra.gestorgastos.screens.graphs.GraphicScreen
 import jesusernesto.lopezibarra.gestorgastos.screens.group.CrearGrupoScreen
 import jesusernesto.lopezibarra.gestorgastos.screens.group.MisGruposScreen
 import jesusernesto.lopezibarra.gestorgastos.screens.income_expenses.AddCardScreen
+import jesusernesto.lopezibarra.gestorgastos.screens.income_expenses.EditExpenseScreen
 import jesusernesto.lopezibarra.gestorgastos.screens.income_expenses.NewMovementScreen
 import jesusernesto.lopezibarra.gestorgastos.screens.user.ProfileScreen
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
@@ -77,6 +78,7 @@ fun MainScreen(
             || currentRoute.startsWith("DetalleMovimiento")
             || currentRoute == "Graficas"
             || currentRoute == "AddCard"
+            || currentRoute.startsWith("EditarGasto")
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -107,6 +109,9 @@ fun MainScreen(
                 HomeScreen(
                     onTransaccionClick = { id ->
                         navController.navigate("DetalleMovimiento/$id")
+                    },
+                    onEditTransaccion = { id ->
+                        navController.navigate("EditarGasto/$id")
                     },
                     onBalanceClick = {
                         navController.navigate("Graficas")
@@ -161,6 +166,13 @@ fun MainScreen(
                     )
                 }
             }
+            composable("EditarGasto/{id}") {
+                EditExpenseScreen(
+                    onBack = { navController.popBackStack() },
+                    onSave = { navController.popBackStack() },
+                    onDelete = { navController.popBackStack() }
+                )
+            }
             composable("Graficas") {
                 GraphicScreen(onBack = { navController.popBackStack() })
             }
@@ -172,6 +184,7 @@ fun MainScreen(
 @Composable
 fun HomeScreen(
     onTransaccionClick: (Int) -> Unit = {},
+    onEditTransaccion: (Int) -> Unit = {},
     onBalanceClick: () -> Unit = {}
 ) {
     val categoriasFiltro = listOf("Todos", "Hogar", "Comida", "Transporte", "Compras")
@@ -406,7 +419,11 @@ fun HomeScreen(
                 }
             } else {
                 items(transaccionesFiltradas) { t ->
-                    TransaccionRow(transaccion = t, onClick = { onTransaccionClick(t.id) })
+                    TransaccionRow(
+                        transaccion = t,
+                        onClick = { onTransaccionClick(t.id) },
+                        onEditClick = { onEditTransaccion(t.id) }
+                    )
                     Divider(color = PurpleLight.copy(alpha = 0.5f), modifier = Modifier.padding(horizontal = 16.dp))
                 }
             }
@@ -589,7 +606,12 @@ fun WeeklyBarGraph(data: List<Pair<Float, Float>>) {
 }
 
 @Composable
-fun TransaccionRow(transaccion: Transaccion, onClick: () -> Unit) {
+fun TransaccionRow(
+    transaccion: Transaccion,
+    onClick: () -> Unit,
+    onEditClick: () -> Unit = {}
+) {
+    var menuAbierto by remember { mutableStateOf(false) }
     val isIngreso = transaccion.amount > 0
     Row(
         modifier = Modifier.fillMaxWidth().clickable { onClick() }.padding(horizontal = 16.dp, vertical = 14.dp),
@@ -614,7 +636,24 @@ fun TransaccionRow(transaccion: Transaccion, onClick: () -> Unit) {
             fontSize = 14.sp, fontWeight = FontWeight.Bold, color = if (isIngreso) GreenIncome else RedExpense
         )
         Spacer(modifier = Modifier.width(6.dp))
-        Icon(Icons.Outlined.MoreVert, contentDescription = null, tint = TextGray, modifier = Modifier.size(18.dp))
+        Box {
+            IconButton(onClick = { menuAbierto = true }, modifier = Modifier.size(24.dp)) {
+                Icon(Icons.Outlined.MoreVert, contentDescription = "Opciones", tint = TextGray, modifier = Modifier.size(18.dp))
+            }
+            DropdownMenu(
+                expanded = menuAbierto,
+                onDismissRequest = { menuAbierto = false }
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Editar Gasto") },
+                    onClick = {
+                        menuAbierto = false
+                        onEditClick()
+                    },
+                    leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null, modifier = Modifier.size(20.dp)) }
+                )
+            }
+        }
     }
 }
 

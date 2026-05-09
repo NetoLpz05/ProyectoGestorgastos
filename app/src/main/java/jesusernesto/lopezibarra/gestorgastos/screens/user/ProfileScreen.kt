@@ -30,12 +30,12 @@ import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
 fun ProfileScreen(
     onBack: () -> Unit,
     onLogout: () -> Unit,
+    onSettings: () -> Unit,
     isDarkMode: Boolean = false,
     onDarkModeChange: (Boolean) -> Unit = {}
 ) {
     var biometria by remember { mutableStateOf(true) }
     var estaEditando by remember { mutableStateOf(false) }
-    var estaEnAlertas by remember { mutableStateOf(false) }
 
     val user = DummyData.userActual
 
@@ -46,14 +46,9 @@ fun ProfileScreen(
             onSave = { estaEditando = false },
             onEditNotifications = {
                 estaEditando = false
-                estaEnAlertas = true
+                onSettings()
             }
         )
-        return
-    }
-
-    if (estaEnAlertas){
-        AlertasScreen (onBack = {estaEnAlertas = false})
         return
     }
 
@@ -86,7 +81,7 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Box(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().clip(RoundedCornerShape(12.dp))
-                    .border(2.dp, PurpleLight, RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surface)) {
+                .border(2.dp, PurpleLight, RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surface)) {
                 Column {
                     InfoRow(icon = Icons.Outlined.Person, label = "NOMBRE COMPLETO", value = user.nombre)
                     Divider(color = PurpleLight)
@@ -100,9 +95,9 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Box(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().clip(RoundedCornerShape(12.dp))
-                    .border(2.dp, PurpleLight, RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surface)) {
+                .border(2.dp, PurpleLight, RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surface)) {
                 Row(modifier = Modifier.fillMaxWidth().height(58.dp)
-                        .padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    .padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Outlined.Fingerprint, contentDescription = null, tint = Purple, modifier = Modifier.size(30.dp))
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -123,9 +118,10 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Box(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().clip(RoundedCornerShape(12.dp))
-                    .border(2.dp, PurpleLight, RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surface).clickable(onClick = {estaEnAlertas = true})) {
+                .border(2.dp, PurpleLight, RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surface)
+                .clickable { onSettings() }) {
                 Row(modifier = Modifier.fillMaxWidth().height(54.dp)
-                        .padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    .padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Outlined.Notifications, contentDescription = null, tint = Purple, modifier = Modifier.size(27.dp))
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -142,9 +138,9 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Box(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp)).border(2.dp, PurpleLight, RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surface)) {
+                .clip(RoundedCornerShape(12.dp)).border(2.dp, PurpleLight, RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surface)) {
                 Row(modifier = Modifier.fillMaxWidth().height(54.dp)
-                        .padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    .padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Outlined.DarkMode, contentDescription = null, tint = Purple, modifier = Modifier.size(22.dp))
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -185,7 +181,7 @@ fun EditProfileScreen(
         AppTopBar(title = "Editar mi Perfil", onBack = onBack)
 
         Column(modifier = Modifier.weight(1f)
-                .verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
+            .verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -210,7 +206,6 @@ fun EditProfileScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // --- NUEVA SECCIÓN DE SEGURIDAD Y PRIVACIDAD ---
             TituloSeccion("SEGURIDAD Y PRIVACIDAD")
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -219,7 +214,7 @@ fun EditProfileScreen(
                 .clip(RoundedCornerShape(10.dp))
                 .border(1.dp, PurpleLight, RoundedCornerShape(10.dp))
                 .background(MaterialTheme.colorScheme.surface)
-                .clickable { onEditNotifications() } // Navega a la pantalla de alertas
+                .clickable { onEditNotifications() }
             ) {
                 Row(modifier = Modifier.fillMaxWidth().height(58.dp)
                     .padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -288,8 +283,9 @@ private fun EditField(value: String, onValueChange: (String) -> Unit, icon: Imag
 fun ProfileScreenPreview() {
     MaterialTheme {
         ProfileScreen(
-            onBack = {  },
-            onLogout = {  }
+            onBack = {},
+            onLogout = {},
+            onSettings = {}
         )
     }
 }
@@ -307,8 +303,8 @@ fun EditProfileScreenPreview() {
     MaterialTheme {
         EditProfileScreen(
             user = mockUser,
-            onBack = { },
-            onSave = { },
+            onBack = {},
+            onSave = {},
             onEditNotifications = {}
         )
     }

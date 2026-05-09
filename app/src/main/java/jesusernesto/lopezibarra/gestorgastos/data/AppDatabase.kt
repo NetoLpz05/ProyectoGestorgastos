@@ -6,9 +6,34 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import jesusernesto.lopezibarra.gestorgastos.data.dao.UsuarioDao
 import jesusernesto.lopezibarra.gestorgastos.data.entity.UsuarioEntity
+import jesusernesto.lopezibarra.gestorgastos.data.entity.CategoriaEntity
+import jesusernesto.lopezibarra.gestorgastos.data.entity.MetodoPagoEntity
+import jesusernesto.lopezibarra.gestorgastos.data.entity.GrupoEntity
+import jesusernesto.lopezibarra.gestorgastos.data.entity.GastoGrupoEntity
+import jesusernesto.lopezibarra.gestorgastos.data.entity.GastoEntity
+import jesusernesto.lopezibarra.gestorgastos.data.entity.IngresoEntity
+import jesusernesto.lopezibarra.gestorgastos.data.entity.PresupuestoEntity
+import jesusernesto.lopezibarra.gestorgastos.data.entity.DetallePresupuestoEntity
+import jesusernesto.lopezibarra.gestorgastos.data.entity.AlertaEntity
+import jesusernesto.lopezibarra.gestorgastos.data.entity.UsuarioGrupoEntity
+import jesusernesto.lopezibarra.gestorgastos.data.entity.DeudaGrupoEntity
+
 
 @Database(
-    entities = [UsuarioEntity::class], version = 1, exportSchema = false
+    entities = [
+        UsuarioEntity::class,
+        CategoriaEntity::class,
+        MetodoPagoEntity::class,
+        GrupoEntity::class,
+        GastoGrupoEntity::class,
+        GastoEntity::class,
+        IngresoEntity::class,
+        PresupuestoEntity::class,
+        DetallePresupuestoEntity::class,
+        AlertaEntity::class,
+        UsuarioGrupoEntity::class,
+        DeudaGrupoEntity::class,
+    ], version = 1, exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
 
