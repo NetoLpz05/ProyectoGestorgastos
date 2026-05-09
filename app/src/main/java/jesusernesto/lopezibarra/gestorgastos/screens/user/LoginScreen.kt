@@ -1,6 +1,9 @@
 package jesusernesto.lopezibarra.gestorgastos.screens.user
 
 import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import jesusernesto.lopezibarra.gestorgastos.R
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -28,6 +31,165 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
 
 @Composable
+fun LoginScreenContent(
+    uiState: AuthUiState,
+    onSubmit: (email: String, password: String) -> Unit,
+    onResetError: () -> Unit,
+    onRegisterClick: () -> Unit,
+    onForgotPasswordClick: () -> Unit
+) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .padding(horizontal = 45.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(Modifier.padding(5.dp))
+
+        Image(
+            painter = painterResource(id = R.drawable.logoapp),
+            contentDescription = "Logo",
+            modifier = Modifier
+                .size(162.dp)
+                .clip(RoundedCornerShape(16.dp))
+        )
+
+        Text(text = "¡Bienvenido!", fontWeight = FontWeight.Bold, fontSize = 32.sp)
+
+        Spacer(Modifier.padding(18.dp))
+
+        if (uiState is AuthUiState.Error) {
+            Text(
+                text = uiState.mensaje,
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 13.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
+
+        Text(
+            text = "Correo Electrónico",
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 15.sp,
+            color = TextGray,
+            modifier = Modifier.align(Alignment.Start).padding(bottom = 6.dp)
+        )
+        OutlinedTextField(
+            value = email,
+            onValueChange = {
+                email = it
+                if (uiState is AuthUiState.Error) onResetError()
+            },
+            modifier = Modifier.fillMaxWidth().height(54.dp),
+            shape = RoundedCornerShape(10.dp),
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedBorderColor = PurpleLight, focusedBorderColor = Purple,
+                unfocusedContainerColor = Color.White, focusedContainerColor = Color.White
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Contraseña",
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 15.sp,
+            color = TextGray,
+            modifier = Modifier.align(Alignment.Start).padding(bottom = 6.dp)
+        )
+        OutlinedTextField(
+            value = password,
+            onValueChange = {
+                password = it
+                if (uiState is AuthUiState.Error) onResetError()
+            },
+            modifier = Modifier.fillMaxWidth().height(54.dp),
+            shape = RoundedCornerShape(10.dp),
+            singleLine = true,
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(
+                        imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                        contentDescription = null
+                    )
+                }
+            },
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedBorderColor = PurpleLight, focusedBorderColor = Purple,
+                unfocusedContainerColor = Color.White, focusedContainerColor = Color.White
+            )
+        )
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        Button(
+            onClick = { onSubmit(email, password) },
+            modifier = Modifier.fillMaxWidth().height(45.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Purple),
+            enabled = uiState !is AuthUiState.Cargando
+        ) {
+            if (uiState is AuthUiState.Cargando) {
+                CircularProgressIndicator(
+                    color = Color.White,
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text("Iniciar Sesión", fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = Color.White)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {},
+            modifier = Modifier.fillMaxWidth().height(45.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = DarkNavy)
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Fingerprint,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(25.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Acceso Biométrico", fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = Color.White)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = buildAnnotatedString {
+                append("¿No tienes cuenta? ")
+                withStyle(SpanStyle(color = Purple)) { append("Regístrate") }
+            },
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 15.sp,
+            modifier = Modifier.clickable { onRegisterClick() }
+        )
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Text(
+            text = "Olvidé mi contraseña",
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 15.sp,
+            color = Purple,
+            modifier = Modifier.clickable { onForgotPasswordClick() }.padding(bottom = 24.dp)
+        )
+    }
+}
+
+@Composable
 fun LoginScreen(
     onLoginClick: () -> Unit,
     onRegisterClick: () -> Unit,
@@ -40,7 +202,6 @@ fun LoginScreen(
 
     val uiState by viewModel.uiState.collectAsState()
 
-    // Navegar automáticamente cuando el login es exitoso
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Exito) {
             viewModel.resetState()
@@ -57,21 +218,18 @@ fun LoginScreen(
     ) {
         Spacer(Modifier.padding(5.dp))
 
-        Box(
+        Image(
+            painter = painterResource(id = R.drawable.logoapp),
+            contentDescription = "Logo",
             modifier = Modifier
                 .size(162.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .background(PurpleLight),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(text = "💰", fontSize = 72.sp)
-        }
+        )
 
         Text(text = "¡Bienvenido!", fontWeight = FontWeight.Bold, fontSize = 32.sp)
 
         Spacer(Modifier.padding(18.dp))
 
-        // Mensaje de error visible bajo el título
         if (uiState is AuthUiState.Error) {
             Text(
                 text = (uiState as AuthUiState.Error).mensaje,
@@ -193,6 +351,11 @@ fun LoginScreen(
 @Composable
 fun LoginScreenPreview() {
     MaterialTheme {
-        LoginScreen(onLoginClick = {}, onRegisterClick = {}, onForgotPasswordClick = {})
+        LoginScreenContent(
+            uiState = AuthUiState.Error("Contraseña incorrecta"),
+            onSubmit = { _, _ -> },
+            onResetError = {},
+            onRegisterClick = {},
+            onForgotPasswordClick = {})
     }
 }

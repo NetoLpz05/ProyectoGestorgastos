@@ -5,11 +5,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
@@ -18,9 +21,265 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import androidx.lifecycle.viewmodel.compose.viewModel
+import jesusernesto.lopezibarra.gestorgastos.R
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RegisterScreenContent(
+    uiState: AuthUiState,
+    onSubmit: (
+        nombre: String,
+        apellido: String,
+        email: String,
+        contrasena: String,
+        confirmacion: String,
+        fechaNacimiento: String,
+        genero: String
+    ) -> Unit,
+    onLoginClick: () -> Unit
+) {
+    var nombre by remember { mutableStateOf("") }
+    var apellido by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var birthDate by remember { mutableStateOf("") }
+    var gender by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
+    val genderOptions = listOf("Hombre", "Mujer", "Otro")
+
+    val datePickerState = rememberDatePickerState(
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                return utcTimeMillis <= System.currentTimeMillis()
+            }
+        }
+    )
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let {
+                        birthDate = SimpleDateFormat("dd MMM yyyy", Locale("es", "MX")).format(Date(it))
+                    }
+                    showDatePicker = false
+                }) {
+                    Text("Aceptar", color = Purple)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancelar", color = TextGray)
+                }
+            }
+        ) {
+            DatePicker(
+                state = datePickerState,
+                colors = DatePickerDefaults.colors(
+                    selectedDayContainerColor = Purple,
+                    todayDateBorderColor = Purple,
+                    selectedYearContainerColor = Purple
+                )
+            )
+        }
+    }
+
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 45.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(Modifier.padding(5.dp))
+
+        Image(
+            painter = painterResource(id = R.drawable.logoapp),
+            contentDescription = "Logo",
+            modifier = Modifier
+                .size(162.dp)
+                .clip(RoundedCornerShape(16.dp))
+        )
+
+        Spacer(Modifier.padding(5.dp))
+
+        Text(
+            text = "Crear Cuenta",
+            fontWeight = FontWeight.Bold,
+            fontSize = 32.sp,
+            color = DarkNavy,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+
+        if (uiState is AuthUiState.Error) {
+            Text(
+                text = uiState.mensaje,
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 13.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
+
+        RegisterLabel("Nombre")
+        RegisterTextField(value = nombre, onValueChange = { nombre = it }, placeholder = "Tu nombre")
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        RegisterLabel("Apellido")
+        RegisterTextField(value = apellido, onValueChange = { apellido = it }, placeholder = "Tu apellido")
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        RegisterLabel("Correo Electrónico")
+        RegisterTextField(value = email, onValueChange = { email = it }, placeholder = "correo@ejemplo.com")
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        RegisterLabel("Fecha de nacimiento")
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(54.dp)
+                .clickable { showDatePicker = true }
+        ) {
+            OutlinedTextField(
+                value = birthDate,
+                onValueChange = {},
+                readOnly = true,
+                enabled = false,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp),
+                placeholder = {
+                    Text("Seleccionar fecha", color = TextGray.copy(alpha = 0.5f))
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Outlined.CalendarMonth,
+                        contentDescription = null,
+                        tint = Purple,
+                        modifier = Modifier.size(20.dp)
+                    )
+                },
+                shape = RoundedCornerShape(10.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledBorderColor = PurpleLight,
+                    disabledContainerColor = Color.White,
+                    disabledTextColor = DarkNavy,
+                    disabledPlaceholderColor = TextGray.copy(alpha = 0.5f),
+                    disabledLeadingIconColor = Purple
+                )
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        RegisterLabel("Género")
+        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
+            OutlinedTextField(
+                value = gender,
+                onValueChange = {},
+                readOnly = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp)
+                    .menuAnchor(),
+                placeholder = { Text("Seleccionar género", color = TextGray.copy(alpha = 0.5f)) },
+                shape = RoundedCornerShape(10.dp),
+                colors = registerTextFieldColors()
+            )
+            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                genderOptions.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option) },
+                        onClick = { gender = option; expanded = false }
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        RegisterLabel("Contraseña")
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            modifier = Modifier.fillMaxWidth().height(54.dp),
+            shape = RoundedCornerShape(10.dp),
+            singleLine = true,
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility, null)
+                }
+            },
+            colors = registerTextFieldColors()
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        RegisterLabel("Confirmar Contraseña")
+        OutlinedTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            modifier = Modifier.fillMaxWidth().height(54.dp),
+            shape = RoundedCornerShape(10.dp),
+            singleLine = true,
+            visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                    Icon(if (confirmPasswordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility, null)
+                }
+            },
+            colors = registerTextFieldColors()
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = {
+                onSubmit(nombre, apellido, email, password, confirmPassword, birthDate, gender)
+            },
+            modifier = Modifier.fillMaxWidth().height(45.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Purple),
+            enabled = uiState !is AuthUiState.Cargando
+        ) {
+            if (uiState is AuthUiState.Cargando) {
+                CircularProgressIndicator(
+                    color = Color.White,
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text("Crear Cuenta", fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = Color.White)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = buildAnnotatedString {
+                append("¿Ya tienes cuenta? ")
+                withStyle(SpanStyle(color = Purple)) { append("Iniciar Sesión") }
+            },
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 15.sp,
+            modifier = Modifier.clickable { onLoginClick() }.padding(bottom = 28.dp)
+        )
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,7 +303,44 @@ fun RegisterScreen(
 
     val uiState by viewModel.uiState.collectAsState()
 
-    // Navegar cuando el registro es exitoso
+    val datePickerState = rememberDatePickerState(
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                return utcTimeMillis <= System.currentTimeMillis()
+            }
+        }
+    )
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let {
+                        birthDate = SimpleDateFormat("dd MMM yyyy", Locale("es", "MX")).format(Date(it))
+                    }
+                    showDatePicker = false
+                }) {
+                    Text("Aceptar", color = Purple)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancelar", color = TextGray)
+                }
+            }
+        ) {
+            DatePicker(
+                state = datePickerState,
+                colors = DatePickerDefaults.colors(
+                    selectedDayContainerColor = Purple,
+                    todayDateBorderColor = Purple,
+                    selectedYearContainerColor = Purple
+                )
+            )
+        }
+    }
+
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Exito) {
             viewModel.resetState()
@@ -62,14 +358,13 @@ fun RegisterScreen(
     ) {
         Spacer(Modifier.padding(5.dp))
 
-        Box(
+        Image(
+            painter = painterResource(id = R.drawable.logoapp),
+            contentDescription = "Logo",
             modifier = Modifier
                 .size(162.dp)
-                .background(PurpleLight, RoundedCornerShape(16.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("💰", fontSize = 72.sp)
-        }
+                .clip(RoundedCornerShape(16.dp))
+        )
 
         Spacer(Modifier.padding(5.dp))
 
@@ -108,32 +403,40 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         RegisterLabel("Fecha de nacimiento")
-        OutlinedTextField(
-            value = birthDate,
-            onValueChange = {},
-            readOnly = true,
-            modifier = Modifier.fillMaxWidth().height(54.dp).clickable { showDatePicker = true },
-            placeholder = { Text("Seleccionar fecha", color = TextGray.copy(alpha = 0.5f)) },
-            shape = RoundedCornerShape(10.dp),
-            colors = registerTextFieldColors()
-        )
-
-        if (showDatePicker) {
-            val datePickerState = rememberDatePickerState()
-            DatePickerDialog(
-                onDismissRequest = { showDatePicker = false },
-                confirmButton = {
-                    TextButton(onClick = {
-                        datePickerState.selectedDateMillis?.let {
-                            birthDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it))
-                        }
-                        showDatePicker = false
-                    }) { Text("OK") }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(54.dp)
+                .clickable { showDatePicker = true }
+        ) {
+            OutlinedTextField(
+                value = birthDate,
+                onValueChange = {},
+                readOnly = true,
+                enabled = false,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp),
+                placeholder = {
+                    Text("Seleccionar fecha", color = TextGray.copy(alpha = 0.5f))
                 },
-                dismissButton = {
-                    TextButton(onClick = { showDatePicker = false }) { Text("Cancelar") }
-                }
-            ) { DatePicker(state = datePickerState) }
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Outlined.CalendarMonth,
+                        contentDescription = null,
+                        tint = Purple,
+                        modifier = Modifier.size(20.dp)
+                    )
+                },
+                shape = RoundedCornerShape(10.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledBorderColor = PurpleLight,
+                    disabledContainerColor = Color.White,
+                    disabledTextColor = DarkNavy,
+                    disabledPlaceholderColor = TextGray.copy(alpha = 0.5f),
+                    disabledLeadingIconColor = Purple
+                )
+            )
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -269,6 +572,22 @@ private fun registerTextFieldColors() = OutlinedTextFieldDefaults.colors(
 @Composable
 fun RegisterScreenPreview() {
     MaterialTheme {
-        RegisterScreen(onRegisterClick = {}, onLoginClick = {})
+        RegisterScreenContent(
+            uiState = AuthUiState.Idle,
+            onSubmit = { _, _, _, _, _, _, _ -> },
+            onLoginClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Register con error")
+@Composable
+fun RegisterScreenErrorPreview() {
+    MaterialTheme {
+        RegisterScreenContent(
+            uiState = AuthUiState.Error("Las contraseñas no coinciden"),
+            onSubmit = { _, _, _, _, _, _, _ -> },
+            onLoginClick = {}
+        )
     }
 }
