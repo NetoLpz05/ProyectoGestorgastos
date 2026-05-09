@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -16,51 +15,108 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import jesusernesto.lopezibarra.gestorgastos.data.Grupo
-import jesusernesto.lopezibarra.gestorgastos.data.enums.CategoriaGrupo
-import jesusernesto.lopezibarra.gestorgastos.data.gruposEjemplo
-import jesusernesto.lopezibarra.gestorgastos.ui.theme.Azure40
-import jesusernesto.lopezibarra.gestorgastos.ui.theme.Background
-import jesusernesto.lopezibarra.gestorgastos.ui.theme.Blue50
-import jesusernesto.lopezibarra.gestorgastos.ui.theme.Bronze40
-import jesusernesto.lopezibarra.gestorgastos.ui.theme.DarkGray
-import jesusernesto.lopezibarra.gestorgastos.ui.theme.DarkNavy
-import jesusernesto.lopezibarra.gestorgastos.ui.theme.Emerald40
-import jesusernesto.lopezibarra.gestorgastos.ui.theme.Green50
-import jesusernesto.lopezibarra.gestorgastos.ui.theme.LightGray
-import jesusernesto.lopezibarra.gestorgastos.ui.theme.Orange50
-import jesusernesto.lopezibarra.gestorgastos.ui.theme.Purple
-import jesusernesto.lopezibarra.gestorgastos.ui.theme.Purple50
-import jesusernesto.lopezibarra.gestorgastos.ui.theme.PurpleGrey40
-import jesusernesto.lopezibarra.gestorgastos.ui.theme.PurpleLight
-import jesusernesto.lopezibarra.gestorgastos.ui.theme.Red40
-import jesusernesto.lopezibarra.gestorgastos.ui.theme.Rose50
-import jesusernesto.lopezibarra.gestorgastos.ui.theme.Violet50
-import jesusernesto.lopezibarra.gestorgastos.ui.theme.White
-
-
+import androidx.lifecycle.viewmodel.compose.viewModel
+import jesusernesto.lopezibarra.gestorgastos.data.entity.GrupoEntity
+import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
 
 @Composable
-fun MisGruposScreen(
-    grupos: List<Grupo>           = gruposEjemplo,
-    onAtras: () -> Unit           = {},
-    onAbrirGrupo: (Grupo) -> Unit = {},
-    onCrearGrupo: () -> Unit      = {},
+fun MisGruposContent(
+    uiState: GrupoUiState,
+    onAtras: () -> Unit = {},
+    onAbrirGrupo: (GrupoEntity) -> Unit = {},
+    onCrearGrupo: () -> Unit = {},
+    onBuscarCodigo: (String) -> Unit = {},
+    onEliminarGrupo: (GrupoEntity) -> Unit = {},
+    onResetError: () -> Unit = {}
 ) {
+    var mostrarDialogoCodigo by remember { mutableStateOf(false) }
+    var codigoInput by remember { mutableStateOf("") }
+    var grupoAEliminar by remember { mutableStateOf<GrupoEntity?>(null) }
+
+    if (mostrarDialogoCodigo) {
+        AlertDialog(
+            onDismissRequest = {
+                mostrarDialogoCodigo = false
+                codigoInput = ""
+                onResetError()
+            },
+            title = { Text("Unirse a un grupo") },
+            text = {
+                Column {
+                    Text("Ingresa el código del grupo:", color = TextGray, fontSize = 14.sp)
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = codigoInput,
+                        onValueChange = { codigoInput = it.uppercase().take(6) },
+                        placeholder = { Text("Ej. AX92L3") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = PurpleLight,
+                            focusedBorderColor = Purple
+                        )
+                    )
+                    if (uiState.error != null) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(uiState.error, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                    }
+                    if (uiState.codigoBuscado != null) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "✓ Te uniste a: ${uiState.codigoBuscado.nombre}",
+                            color = GreenIncome,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { onBuscarCodigo(codigoInput) }) {
+                    Text("Buscar", color = Purple)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    mostrarDialogoCodigo = false
+                    codigoInput = ""
+                    onResetError()
+                }) {
+                    Text("Cancelar", color = TextGray)
+                }
+            }
+        )
+    }
+
+    grupoAEliminar?.let { grupo ->
+        AlertDialog(
+            onDismissRequest = { grupoAEliminar = null },
+            title = { Text("Eliminar grupo") },
+            text = { Text("¿Seguro que quieres eliminar \"${grupo.nombre}\"?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    onEliminarGrupo(grupo)
+                    grupoAEliminar = null
+                }) { Text("Eliminar", color = RedExpense) }
+            },
+            dismissButton = {
+                TextButton(onClick = { grupoAEliminar = null }) {
+                    Text("Cancelar", color = TextGray)
+                }
+            }
+        )
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.background,
-                shadowElevation = 0.dp
+                color = MaterialTheme.colorScheme.background
             ) {
                 Row(
                     modifier = Modifier
@@ -81,8 +137,15 @@ fun MisGruposScreen(
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(start = 12.dp)
+                        modifier = Modifier.padding(start = 12.dp).weight(1f)
                     )
+                    IconButton(onClick = { mostrarDialogoCodigo = true }) {
+                        Icon(
+                            Icons.Outlined.QrCodeScanner,
+                            contentDescription = "Unirse con código",
+                            tint = Purple
+                        )
+                    }
                 }
             }
         }
@@ -95,9 +158,205 @@ fun MisGruposScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item { Spacer(Modifier.height(8.dp)) }
-            items(grupos, key = { it.id }) { grupo ->
-                GrupoCard(grupo = grupo, onClick = { onAbrirGrupo(grupo) })
+
+            if (uiState.grupos.isEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 48.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("👥", fontSize = 48.sp)
+                            Spacer(Modifier.height(12.dp))
+                            Text(
+                                "Sin grupos todavía",
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                "Crea uno o únete con un código",
+                                fontSize = 13.sp,
+                                color = TextGray
+                            )
+                        }
+                    }
+                }
+            } else {
+                items(uiState.grupos, key = { it.idGrupo }) { grupo ->
+                    GrupoCard(
+                        grupo = grupo,
+                        onClick = { onAbrirGrupo(grupo) },
+                        onEliminar = { grupoAEliminar = grupo }
+                    )
+                }
             }
+
+            item {
+                CrearGrupoCard(onClick = onCrearGrupo)
+                Spacer(Modifier.height(16.dp))
+            }
+        }
+    }
+}
+
+
+
+@Composable
+fun MisGruposScreen(
+    onAtras: () -> Unit = {},
+    onAbrirGrupo: (GrupoEntity) -> Unit = {},
+    onCrearGrupo: () -> Unit = {},
+    viewModel: GrupoViewModel = viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    var mostrarDialogoCodigo by remember { mutableStateOf(false) }
+    var codigoInput by remember { mutableStateOf("") }
+    var grupoAEliminar by remember { mutableStateOf<GrupoEntity?>(null) }
+
+    // Diálogo unirse por código
+    if (mostrarDialogoCodigo) {
+        AlertDialog(
+            onDismissRequest = {
+                mostrarDialogoCodigo = false
+                codigoInput = ""
+                viewModel.resetError()
+            },
+            title = { Text("Unirse a un grupo") },
+            text = {
+                Column {
+                    Text("Ingresa el código del grupo:", color = TextGray, fontSize = 14.sp)
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = codigoInput,
+                        onValueChange = { codigoInput = it.uppercase().take(6) },
+                        placeholder = { Text("Ej. AX92L3") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = PurpleLight,
+                            focusedBorderColor = Purple
+                        )
+                    )
+                    if (uiState.error != null) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(uiState.error!!, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                    }
+                    if (uiState.codigoBuscado != null) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "✓ Te uniste a: ${uiState.codigoBuscado!!.nombre}",
+                            color = GreenIncome, fontSize = 12.sp
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.buscarPorCodigo(codigoInput) }) {
+                    Text("Buscar", color = Purple)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    mostrarDialogoCodigo = false
+                    codigoInput = ""
+                    viewModel.resetError()
+                }) {
+                    Text("Cancelar", color = TextGray)
+                }
+            }
+        )
+    }
+
+    grupoAEliminar?.let { grupo ->
+        AlertDialog(
+            onDismissRequest = { grupoAEliminar = null },
+            title = { Text("Eliminar grupo") },
+            text = { Text("¿Seguro que quieres eliminar \"${grupo.nombre}\"?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.eliminarGrupo(grupo)
+                    grupoAEliminar = null
+                }) { Text("Eliminar", color = RedExpense) }
+            },
+            dismissButton = {
+                TextButton(onClick = { grupoAEliminar = null }) {
+                    Text("Cancelar", color = TextGray)
+                }
+            }
+        )
+    }
+
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.background
+            ) {
+                Row(
+                    modifier = Modifier
+                        .statusBarsPadding()
+                        .height(64.dp)
+                        .padding(horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = onAtras) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Regresar",
+                            tint = MaterialTheme.colorScheme.onSurface)
+                    }
+                    Text(
+                        text = "Mis Grupos",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(start = 12.dp).weight(1f)
+                    )
+                    // Botón unirse por código
+                    IconButton(onClick = { mostrarDialogoCodigo = true }) {
+                        Icon(Icons.Outlined.QrCodeScanner, contentDescription = "Unirse con código",
+                            tint = Purple)
+                    }
+                }
+            }
+        }
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item { Spacer(Modifier.height(8.dp)) }
+
+            if (uiState.grupos.isEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("👥", fontSize = 48.sp)
+                            Spacer(Modifier.height(12.dp))
+                            Text("Sin grupos todavía", fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface)
+                            Text("Crea uno o únete con un código",
+                                fontSize = 13.sp, color = TextGray)
+                        }
+                    }
+                }
+            } else {
+                items(uiState.grupos, key = { it.idGrupo }) { grupo ->
+                    GrupoCard(
+                        grupo = grupo,
+                        onClick = { onAbrirGrupo(grupo) },
+                        onEliminar = { grupoAEliminar = grupo }
+                    )
+                }
+            }
+
             item {
                 CrearGrupoCard(onClick = onCrearGrupo)
                 Spacer(Modifier.height(16.dp))
@@ -107,7 +366,11 @@ fun MisGruposScreen(
 }
 
 @Composable
-private fun GrupoCard(grupo: Grupo, onClick: () -> Unit) {
+private fun GrupoCard(
+    grupo: GrupoEntity,
+    onClick: () -> Unit,
+    onEliminar: () -> Unit
+) {
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -115,60 +378,29 @@ private fun GrupoCard(grupo: Grupo, onClick: () -> Unit) {
         modifier = Modifier.fillMaxWidth().clickable { onClick() }
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = grupo.nombre,
-                    fontSize = 19.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                Spacer(Modifier.height(6.dp))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.People,
-                        contentDescription = null,
-                        tint = PurpleGrey40,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        text = "${grupo.miembros} miembros",
-                        fontSize = 14.sp,
-                        color = PurpleGrey40
-                    )
-                }
-            }
-
-            Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(PurpleLight.copy(alpha = 0.3f)))
-
             Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.width(90.dp).fillMaxHeight()
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(PurpleLight),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(fondoIcono(grupo.iconoCategoria))
-                ) {
-                    Icon(
-                        imageVector = iconoVector(grupo.iconoCategoria),
-                        contentDescription = null,
-                        tint = colorIcono(grupo.iconoCategoria),
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                Text(emojiPorTipo(grupo.tipo), fontSize = 24.sp)
+            }
+            Spacer(Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(grupo.nombre, fontSize = 16.sp, fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface)
+                Text(grupo.tipo, fontSize = 13.sp, color = TextGray)
+                Text("Código: ${grupo.codigoInvitacion}", fontSize = 11.sp,
+                    color = Purple, fontWeight = FontWeight.SemiBold)
+            }
+            IconButton(onClick = onEliminar) {
+                Icon(Icons.Outlined.DeleteOutline, contentDescription = "Eliminar",
+                    tint = RedExpense, modifier = Modifier.size(20.dp))
             }
         }
     }
@@ -178,7 +410,9 @@ private fun GrupoCard(grupo: Grupo, onClick: () -> Unit) {
 private fun CrearGrupoCard(onClick: () -> Unit) {
     Card(
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+        ),
         border = BorderStroke(width = 1.dp, color = PurpleLight),
         modifier = Modifier.fillMaxWidth().clickable { onClick() }
     ) {
@@ -186,52 +420,82 @@ private fun CrearGrupoCard(onClick: () -> Unit) {
             modifier = Modifier.fillMaxWidth().padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                imageVector = Icons.Outlined.GroupAdd,
-                contentDescription = null,
-                tint = PurpleGrey40,
-                modifier = Modifier.size(32.dp)
-            )
+            Icon(Icons.Outlined.GroupAdd, contentDescription = null,
+                tint = PurpleGrey40, modifier = Modifier.size(32.dp))
             Spacer(Modifier.height(12.dp))
-            Text("Crear un nuevo grupo", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-            Text(
-                "Divide gastos de cenas o viajes",
-                fontSize = 12.sp,
-                color = PurpleGrey40,
-                textAlign = TextAlign.Center
-            )
+            Text("Crear un nuevo grupo", fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface)
+            Text("Divide gastos de cenas o viajes", fontSize = 12.sp,
+                color = PurpleGrey40, textAlign = TextAlign.Center)
         }
     }
 }
 
-private fun fondoIcono(cat: CategoriaGrupo) = when (cat) {
-    CategoriaGrupo.PAREJA  -> Rose50
-    CategoriaGrupo.VIAJES  -> Orange50
-    CategoriaGrupo.CASA    -> Blue50
-    CategoriaGrupo.AMIGOS  -> Green50
-    CategoriaGrupo.TRABAJO -> Violet50
-    CategoriaGrupo.OTRO    -> LightGray
-}
+val gruposFake = listOf(
+    GrupoEntity(
+        idGrupo = 1,
+        nombre = "Viaje Cancún",
+        tipo = "Viaje",
+        codigoInvitacion = "AX92L3",
+        imagen = "✈️"
+    ),
+    GrupoEntity(
+        idGrupo = 2,
+        nombre = "Departamento",
+        tipo = "Familiar",
+        codigoInvitacion = "HOME22",
+        imagen = "🏠"
+    ),
+    GrupoEntity(
+        idGrupo = 3,
+        nombre = "Proyecto Escolar",
+        tipo = "Escuela",
+        codigoInvitacion = "UNI789",
+        imagen = "🎓"
+    ),
+    GrupoEntity(
+        idGrupo = 4,
+        nombre = "Oficina",
+        tipo = "Trabajo",
+        codigoInvitacion = "WORK55",
+        imagen = "💼"
+    ),
+    GrupoEntity(
+        idGrupo = 5,
+        nombre = "Cumpleaños Ana",
+        tipo = "Evento",
+        codigoInvitacion = "PARTY1",
+        imagen = "🎉"
+    )
+)
 
-private fun colorIcono(cat: CategoriaGrupo) = when (cat) {
-    CategoriaGrupo.PAREJA  -> Red40
-    CategoriaGrupo.VIAJES  -> Bronze40
-    CategoriaGrupo.CASA    -> Azure40
-    CategoriaGrupo.AMIGOS  -> Emerald40
-    CategoriaGrupo.TRABAJO -> Purple50
-    CategoriaGrupo.OTRO    -> DarkGray
-}
-private fun iconoVector(cat: CategoriaGrupo): ImageVector = when (cat) {
-    CategoriaGrupo.PAREJA   -> Icons.Filled.Favorite
-    CategoriaGrupo.VIAJES   -> Icons.Filled.Flight
-    CategoriaGrupo.CASA     -> Icons.Filled.Home
-    CategoriaGrupo.AMIGOS   -> Icons.Filled.People
-    CategoriaGrupo.TRABAJO  -> Icons.Filled.Work
-    CategoriaGrupo.OTRO     -> Icons.Filled.Category
+private fun emojiPorTipo(tipo: String) = when (tipo) {
+    "Familiar" -> "👨‍👩‍👧‍👦"
+    "Trabajo"  -> "💼"
+    "Pareja"   -> "💑"
+    "Escuela"  -> "🎓"
+    "Evento"   -> "🎉"
+    "Viaje"    -> "✈️"
+    else       -> "👥"
 }
 
 @Preview(showBackground = true)
 @Composable
 fun MisGruposScreenPreview() {
-    MaterialTheme { MisGruposScreen() }
+
+    val fakeState = GrupoUiState(
+        grupos = gruposFake
+    )
+
+    MaterialTheme {
+        MisGruposContent(
+            uiState = fakeState,
+            onAtras = {},
+            onAbrirGrupo = {},
+            onCrearGrupo = {},
+            onBuscarCodigo = {},
+            onEliminarGrupo = {},
+            onResetError = {}
+        )
+    }
 }

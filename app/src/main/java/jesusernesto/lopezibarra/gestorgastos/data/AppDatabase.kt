@@ -4,6 +4,9 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import jesusernesto.lopezibarra.gestorgastos.data.dao.AlertaDao
+import jesusernesto.lopezibarra.gestorgastos.data.dao.CategoriaDao
+import jesusernesto.lopezibarra.gestorgastos.data.dao.GrupoDao
 import jesusernesto.lopezibarra.gestorgastos.data.dao.UsuarioDao
 import jesusernesto.lopezibarra.gestorgastos.data.entity.UsuarioEntity
 import jesusernesto.lopezibarra.gestorgastos.data.entity.CategoriaEntity
@@ -38,6 +41,9 @@ import jesusernesto.lopezibarra.gestorgastos.data.entity.DeudaGrupoEntity
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun usuarioDao(): UsuarioDao
+    abstract fun grupoDao(): GrupoDao
+    abstract fun alertaDao(): AlertaDao
+    abstract fun categoriaDao(): CategoriaDao
 
     companion object {
 

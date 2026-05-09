@@ -40,6 +40,7 @@ import jesusernesto.lopezibarra.gestorgastos.screens.group.MisGruposScreen
 import jesusernesto.lopezibarra.gestorgastos.screens.income_expenses.AddCardScreen
 import jesusernesto.lopezibarra.gestorgastos.screens.income_expenses.EditExpenseScreen
 import jesusernesto.lopezibarra.gestorgastos.screens.income_expenses.NewMovementScreen
+import jesusernesto.lopezibarra.gestorgastos.screens.user.AlertasScreen
 import jesusernesto.lopezibarra.gestorgastos.screens.user.ProfileScreen
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
 import java.text.SimpleDateFormat
@@ -139,6 +140,7 @@ fun MainScreen(
                 ProfileScreen(
                     onBack = { navController.popBackStack() },
                     onLogout = onLogout,
+                    onSettings = { navController.navigate("Alertas") },
                     isDarkMode = isDarkMode,
                     onDarkModeChange = onDarkModeChange
                 )
@@ -156,6 +158,11 @@ fun MainScreen(
                     onSave = { navController.popBackStack() }
                 )
             }
+
+            composable("Alertas") {
+                AlertasScreen(onBack = { navController.popBackStack() })
+            }
+
             composable("DetalleMovimiento/{id}") { backStackEntry ->
                 val id = backStackEntry.arguments?.getString("id")?.toIntOrNull()
                 val transaccion = DummyData.transacciones.find { it.id == id }

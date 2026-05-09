@@ -17,7 +17,7 @@ data class UsuarioEntity(
     val contrasena: String,
     val fechaNacimiento: String,
     val genero: String,
-    val biometriaActiva: String = "INACTIVA",
+    val biometriaActiva: Boolean = false,
     val tema: String = "CLARO",
     val createdAt: Long = System.currentTimeMillis()
 )
