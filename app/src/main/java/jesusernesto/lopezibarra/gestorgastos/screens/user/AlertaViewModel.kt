@@ -1,6 +1,7 @@
 package jesusernesto.lopezibarra.gestorgastos.screens.user
 
 import android.app.Application
+import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import jesusernesto.lopezibarra.gestorgastos.data.AppDatabase
@@ -26,7 +27,14 @@ class AlertaViewModel (application: Application) : AndroidViewModel(application)
         AlertaRepository(AppDatabase.getInstance(application).alertaDao())
     }
 
-    private val _uiState = MutableStateFlow(AlertaUiState())
+    private val prefs = application.getSharedPreferences("alertas_config", Context.MODE_PRIVATE)
+
+    private val _uiState = MutableStateFlow(
+        AlertaUiState(
+            umbralGlobal = prefs.getFloat("umbral", 0.8f),
+            alertasHabilitadas = prefs.getBoolean("habilitadas", true)
+        )
+    )
     val uiState: StateFlow<AlertaUiState> = _uiState
 
     init {
@@ -53,6 +61,32 @@ class AlertaViewModel (application: Application) : AndroidViewModel(application)
             }
         }
     }
+
+    fun guardarConfiguracion(umbral: Float, alertasHabilitadas: Boolean) {
+        prefs.edit()
+            .putFloat("umbral", umbral)
+            .putBoolean("habilitadas", alertasHabilitadas)
+            .apply()
+
+        val idUsuario = SessionManager.usuarioActual?.idUsuario
+        if (idUsuario != null) {
+            viewModelScope.launch {
+                _uiState.value.alertas.forEach { alerta ->
+                    repository.toggleAlerta(alerta.idAlerta, alertasHabilitadas)
+                    repository.actualizarLimite(alerta.idAlerta, umbral)
+                }
+            }
+        }
+
+        _uiState.update {
+            it.copy(
+                umbralGlobal = umbral,
+                alertasHabilitadas = alertasHabilitadas,
+                guardado = true
+            )
+        }
+    }
+
 
     fun toggleAlerta(alerta: AlertaEntity){
         viewModelScope.launch {

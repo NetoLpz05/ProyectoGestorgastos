@@ -31,8 +31,11 @@ fun AlertasScreen(
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(Unit) {
-        if (uiState.alertas.isEmpty()) {
+    var umbralLocal by remember { mutableStateOf(uiState.umbralGlobal) }
+    var alertasHabilitadasLocal by remember { mutableStateOf(uiState.alertasHabilitadas) }
+    val categoriasState = remember {
+        mutableStateMapOf<String, Boolean>().apply {
+            DummyData.categorias.forEach { (_, nombre) -> put(nombre, true) }
         }
     }
 
@@ -40,14 +43,7 @@ fun AlertasScreen(
         if (uiState.guardado) {
             snackbarHostState.showSnackbar("Configuración guardada")
             viewModel.resetGuardado()
-        }
-    }
-
-    var umbralLocal by remember { mutableStateOf(uiState.umbralGlobal) }
-    var alertasHabilitadasLocal by remember { mutableStateOf(uiState.alertasHabilitadas) }
-    val categoriasState = remember {
-        mutableStateMapOf<String, Boolean>().apply {
-            DummyData.categorias.forEach { (_, nombre) -> put(nombre, true) }
+            onBack()
         }
     }
 
@@ -200,10 +196,7 @@ fun AlertasScreen(
             Surface(shadowElevation = 8.dp, color = MaterialTheme.colorScheme.surface) {
                 Button(
                     onClick = {
-                        viewModel.setAlertasHabilitadas(alertasHabilitadasLocal)
-                        viewModel.setUmbralGlobal(umbralLocal)
-                        viewModel.resetGuardado()
-                        viewModel.setAlertasHabilitadas(alertasHabilitadasLocal)
+                        viewModel.guardarConfiguracion(umbralLocal, alertasHabilitadasLocal)
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -212,8 +205,12 @@ fun AlertasScreen(
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Purple)
                 ) {
-                    Text("Guardar Configuración", fontWeight = FontWeight.SemiBold,
-                        fontSize = 15.sp, color = Color.White)
+                    Text(
+                        "Guardar Configuración",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 15.sp,
+                        color = Color.White
+                    )
                 }
             }
         }
