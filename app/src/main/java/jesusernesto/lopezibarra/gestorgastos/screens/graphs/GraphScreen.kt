@@ -1,94 +1,178 @@
 package jesusernesto.lopezibarra.gestorgastos.screens.graphs
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import jesusernesto.lopezibarra.gestorgastos.dummy.DummyData
-import jesusernesto.lopezibarra.gestorgastos.dummy.Presupuesto
+import androidx.lifecycle.viewmodel.compose.viewModel
+import jesusernesto.lopezibarra.gestorgastos.data.enums.PeriodoGrafica
 import jesusernesto.lopezibarra.gestorgastos.screens.components.AppTopBar
-import jesusernesto.lopezibarra.gestorgastos.ui.theme.DarkNavy
-import jesusernesto.lopezibarra.gestorgastos.ui.theme.Purple
-import jesusernesto.lopezibarra.gestorgastos.ui.theme.PurpleLight
-import jesusernesto.lopezibarra.gestorgastos.ui.theme.TextGray
+import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
+import java.text.SimpleDateFormat
+import java.util.*
 
+private val sdfDisplay = SimpleDateFormat("dd MMM yyyy", Locale("es", "MX"))
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GraphicScreen(
-    onBack: () -> Unit = {}
-){
-    val periodos = listOf("Día", "Semanal", "Quincenal")
-    var periodosSeleccionados by remember { mutableStateOf("Día") }
-    val fechaSeleccionada = "24 Mar 2026"
+    onBack: () -> Unit = {},
+    viewModel: GraphicViewModel = viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val periodoActual by viewModel.periodo.collectAsState()
+    val fechaMs by viewModel.fechaSeleccionada.collectAsState()
 
-    Column (modifier = Modifier.fillMaxSize().background(Color.White)){
+    val periodos = listOf("Día", "Semanal", "Quincenal")
+    val periodoLabel = when (periodoActual) {
+        PeriodoGrafica.DIA      -> "Día"
+        PeriodoGrafica.SEMANAL  -> "Semanal"
+        PeriodoGrafica.QUINCENAL -> "Quincenal"
+    }
+
+    var mostrarDatePicker by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = fechaMs
+    )
+
+    if (mostrarDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { mostrarDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { viewModel.setFecha(it) }
+                    mostrarDatePicker = false
+                }) { Text("Aceptar", color = Purple) }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarDatePicker = false }) {
+                    Text("Cancelar", color = TextGray)
+                }
+            }
+        ) {
+            DatePicker(
+                state = datePickerState,
+                colors = DatePickerDefaults.colors(
+                    selectedDayContainerColor = Purple,
+                    todayDateBorderColor = Purple,
+                    selectedYearContainerColor = Purple
+                )
+            )
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
         AppTopBar(title = "Gráficas", onBack = onBack)
 
-        Column (modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)){
+        if (uiState.cargando) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Purple)
+            }
+            return@Column
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp)
+        ) {
             Spacer(modifier = Modifier.height(12.dp))
 
-            Text(text = "Periodo", fontSize = 13.sp, color = TextGray, fontWeight = FontWeight.Medium, modifier = Modifier.padding(bottom = 8.dp))
-
-            PeriodoSelector(periodos = periodos, seleccionado = periodosSeleccionados, onSeleccionar = {periodosSeleccionados = it})
+            ResumenCard(resumen = uiState.resumen)
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(text = "Seleccionar fecha", fontSize = 13.sp, color = TextGray, fontWeight = FontWeight.Medium, modifier = Modifier.padding(bottom = 8.dp))
+            Text(
+                text = "Periodo",
+                fontSize = 13.sp,
+                color = TextGray,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
 
-            FechaSelector(fecha = fechaSeleccionada)
+            PeriodoSelector(
+                periodos = periodos,
+                seleccionado = periodoLabel,
+                onSeleccionar = { label ->
+                    viewModel.setPeriodo(
+                        when (label) {
+                            "Semanal"   -> PeriodoGrafica.SEMANAL
+                            "Quincenal" -> PeriodoGrafica.QUINCENAL
+                            else        -> PeriodoGrafica.DIA
+                        }
+                    )
+                }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Seleccionar fecha",
+                fontSize = 13.sp,
+                color = TextGray,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            FechaSelector(
+                fecha = sdfDisplay.format(Date(fechaMs)),
+                onClick = { mostrarDatePicker = true }
+            )
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            DummyData.listapresupuestos.forEach { presupuesto -> val emoji = DummyData.categorias.find { it.second.equals(presupuesto.category, ignoreCase = true) }
-                ?.first ?: "\uD83D\uDCB0"
-
-                PresupuestoCard(presupuesto = presupuesto, emoji = emoji)
-                Spacer(modifier = Modifier.height(8.dp))
+            if (uiState.presupuestos.isEmpty()) {
+                EmptyCard(mensaje = "No hay presupuesto configurado para este período")
+            } else {
+                uiState.presupuestos.forEach { p ->
+                    PresupuestoCard(
+                        categoria = p.categoria,
+                        emoji = p.emoji,
+                        asignado = p.asignado,
+                        gastado = p.gastado,
+                        porcentaje = p.porcentaje,
+                        restante = p.restante,
+                        excedido = p.excedido,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text(text = "Categorías", fontSize = 14.sp, color = TextGray, fontWeight = FontWeight.Medium, modifier = Modifier.padding(bottom = 10.dp))
-
-            CategoriasGrid(categorias = DummyData.categorias)
+            if (uiState.categorias.isNotEmpty()) {
+                Text(
+                    text = "Gasto por categoría",
+                    fontSize = 14.sp,
+                    color = TextGray,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+                CategoriasGrid(categorias = uiState.categorias)
+            }
 
             Spacer(modifier = Modifier.height(80.dp))
         }
@@ -97,13 +181,89 @@ fun GraphicScreen(
 
 
 @Composable
-fun PeriodoSelector(periodos: List<String>, seleccionado: String, onSeleccionar: (String) -> Unit){
-    Row (modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).border(1.5.dp,
-        PurpleLight, RoundedCornerShape(12.dp)
-    )){
+private fun ResumenCard(resumen: ResumenPeriodoUi) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .border(1.5.dp, PurpleLight, RoundedCornerShape(14.dp))
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        horizontalArrangement = Arrangement.SpaceAround
+    ) {
+        ResumenItem(
+            label = "Ingresos",
+            monto = resumen.totalIngresos,
+            color = GreenIncome
+        )
+        Box(
+            modifier = Modifier
+                .width(1.dp)
+                .height(44.dp)
+                .background(PurpleLight)
+        )
+        ResumenItem(
+            label = "Gastos",
+            monto = resumen.totalGastos,
+            color = RedExpense
+        )
+        Box(
+            modifier = Modifier
+                .width(1.dp)
+                .height(44.dp)
+                .background(PurpleLight)
+        )
+        ResumenItem(
+            label = "Balance",
+            monto = resumen.balance,
+            color = if (resumen.balance >= 0) Purple else RedExpense
+        )
+    }
+}
+
+@Composable
+private fun ResumenItem(label: String, monto: Double, color: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            color = TextGray,
+            fontWeight = FontWeight.Medium
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "$${"%,.0f".format(monto)}",
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold,
+            color = color
+        )
+    }
+}
+
+
+@Composable
+fun PeriodoSelector(
+    periodos: List<String>,
+    seleccionado: String,
+    onSeleccionar: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .border(1.5.dp, PurpleLight, RoundedCornerShape(12.dp))
+    ) {
         periodos.forEach { periodo ->
             val isSelected = periodo == seleccionado
-            Box(modifier = Modifier.weight(1f).clip(RoundedCornerShape(12.dp)).background(if (isSelected) PurpleLight else Color.White).clickable{onSeleccionar(periodo)}.padding(vertical = 12.dp), contentAlignment = Alignment.Center){
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(if (isSelected) PurpleLight else Color.Transparent)
+                    .clickable { onSeleccionar(periodo) }
+                    .padding(vertical = 12.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 Text(
                     text = periodo,
                     fontSize = 14.sp,
@@ -115,15 +275,24 @@ fun PeriodoSelector(periodos: List<String>, seleccionado: String, onSeleccionar:
     }
 }
 
+
 @Composable
-fun FechaSelector(fecha: String){
-    Row (modifier = Modifier.clip(RoundedCornerShape(10.dp)).border(1.5.dp, PurpleLight, RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)){
-        Icon(imageVector = Icons.Outlined.CalendarMonth,
+fun FechaSelector(fecha: String, onClick: () -> Unit = {}) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(10.dp))
+            .border(1.5.dp, PurpleLight, RoundedCornerShape(10.dp))
+            .clickable { onClick() }
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.CalendarMonth,
             contentDescription = null,
             tint = DarkNavy,
             modifier = Modifier.size(18.dp)
         )
-
         Text(
             text = fecha,
             fontSize = 14.sp,
@@ -133,19 +302,38 @@ fun FechaSelector(fecha: String){
     }
 }
 
+
 @Composable
-fun PresupuestoCard(presupuesto: Presupuesto, emoji: String){
-    Column (modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(14.dp)).border(1.5.dp, PurpleLight, RoundedCornerShape(14.dp)).padding(14.dp)){
-        Row (modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically){
+fun PresupuestoCard(
+    categoria: String,
+    emoji: String,
+    asignado: Double,
+    gastado: Double,
+    porcentaje: Int,
+    restante: Double,
+    excedido: Boolean,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .border(1.5.dp, if (excedido) RedExpense.copy(alpha = 0.4f) else PurpleLight, RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(14.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
                 text = "Presupuesto",
                 fontSize = 13.sp,
                 color = TextGray,
                 fontWeight = FontWeight.Medium
             )
-
             Text(
-                text ="$${"%,.0f".format(presupuesto.assigned)}",
+                text = "$${"%,.0f".format(asignado)}",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = Purple
@@ -154,10 +342,13 @@ fun PresupuestoCard(presupuesto: Presupuesto, emoji: String){
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        Row (verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)){
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
             Text(text = emoji, fontSize = 18.sp)
             Text(
-                text = presupuesto.category,
+                text = categoria,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
                 color = TextGray
@@ -166,41 +357,68 @@ fun PresupuestoCard(presupuesto: Presupuesto, emoji: String){
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        BarraProgreso(porcentajeReal = presupuesto.porcentaje, porcentajeRestante = 100 - presupuesto.porcentaje)
+        BarraProgreso(
+            porcentajeReal = porcentaje,
+            porcentajeRestante = (100 - porcentaje).coerceAtLeast(0),
+            excedido = excedido
+        )
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        Row (modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween){
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
             Column {
                 Text(text = "Gasto real", fontSize = 11.sp, color = TextGray)
                 Text(
-                    text = "$${"%,.0f".format(presupuesto.spent)}",
+                    text = "$${"%,.0f".format(gastado)}",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = DarkNavy
+                    color = if (excedido) RedExpense else DarkNavy
                 )
             }
-            Column (horizontalAlignment = Alignment.End){
-                Text(text = "Estimado", fontSize = 11.sp, color = TextGray)
+            Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = "$${"%,.0f".format(presupuesto.restante)}",
+                    text = if (excedido) "Excedido" else "Disponible",
+                    fontSize = 11.sp,
+                    color = TextGray
+                )
+                Text(
+                    text = "$${"%,.0f".format(kotlin.math.abs(restante))}",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = DarkNavy
+                    color = if (excedido) RedExpense else DarkNavy
                 )
             }
         }
     }
 }
 
+
 @Composable
-fun BarraProgreso(porcentajeReal: Int, porcentajeRestante: Int){
-    Row (modifier = Modifier.fillMaxWidth()){
-        if (porcentajeReal > 0){
+fun BarraProgreso(
+    porcentajeReal: Int,
+    porcentajeRestante: Int,
+    excedido: Boolean = false
+) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        if (porcentajeReal > 0) {
             Box(
-                modifier = Modifier.weight(porcentajeReal.toFloat()).clip(RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp,
-                    topEnd = if (porcentajeRestante == 0) 8.dp else 0.dp, bottomEnd = if (porcentajeRestante == 0) 8.dp else 0.dp)
-            ).background(Purple).padding(vertical = 6.dp, horizontal = 8.dp), contentAlignment = Alignment.CenterStart){
+                modifier = Modifier
+                    .weight(porcentajeReal.toFloat())
+                    .clip(
+                        RoundedCornerShape(
+                            topStart = 8.dp,
+                            bottomStart = 8.dp,
+                            topEnd = if (porcentajeRestante == 0) 8.dp else 0.dp,
+                            bottomEnd = if (porcentajeRestante == 0) 8.dp else 0.dp
+                        )
+                    )
+                    .background(if (excedido) RedExpense else Purple)
+                    .padding(vertical = 6.dp, horizontal = 8.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
                 Text(
                     text = "$porcentajeReal%",
                     fontSize = 11.sp,
@@ -209,9 +427,22 @@ fun BarraProgreso(porcentajeReal: Int, porcentajeRestante: Int){
                 )
             }
         }
-        if (porcentajeRestante > 0){
-            Box(modifier = Modifier.weight(porcentajeRestante.toFloat()).clip(RoundedCornerShape(topStart = if (porcentajeReal == 0) 8.dp else 0.dp, bottomStart = if (porcentajeReal == 0) 8.dp else 0.dp, topEnd = 8.dp, bottomEnd = 8.dp)
-            ).background(PurpleLight).padding(vertical = 6.dp, horizontal = 8.dp), contentAlignment = Alignment.CenterEnd){
+        if (porcentajeRestante > 0) {
+            Box(
+                modifier = Modifier
+                    .weight(porcentajeRestante.toFloat())
+                    .clip(
+                        RoundedCornerShape(
+                            topStart = if (porcentajeReal == 0) 8.dp else 0.dp,
+                            bottomStart = if (porcentajeReal == 0) 8.dp else 0.dp,
+                            topEnd = 8.dp,
+                            bottomEnd = 8.dp
+                        )
+                    )
+                    .background(PurpleLight)
+                    .padding(vertical = 6.dp, horizontal = 8.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
                 Text(
                     text = "$porcentajeRestante%",
                     fontSize = 11.sp,
@@ -223,14 +454,24 @@ fun BarraProgreso(porcentajeReal: Int, porcentajeRestante: Int){
     }
 }
 
+
 @Composable
-fun CategoriasGrid(categorias: List<Pair<String, String>>){
+fun CategoriasGrid(categorias: List<CategoriaGraficaUi>) {
     val filas = categorias.chunked(2)
-    Column (verticalArrangement = Arrangement.spacedBy(10.dp)){
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         filas.forEach { fila ->
-            Row (modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)){
-                fila.forEach { (emoji, nombre) ->
-                    CategoriaChip(emoji = emoji, nombre = nombre, isDestacada = DummyData.categorias.indexOf(emoji to nombre) < 2, modifier = Modifier.weight(1f))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                fila.forEachIndexed { index, cat ->
+                    CategoriaChip(
+                        emoji = cat.emoji,
+                        nombre = cat.nombre,
+                        monto = cat.totalGastado,
+                        isDestacada = index == 0 && fila === filas.first(),
+                        modifier = Modifier.weight(1f)
+                    )
                 }
                 if (fila.size == 1) Spacer(modifier = Modifier.weight(1f))
             }
@@ -239,22 +480,117 @@ fun CategoriasGrid(categorias: List<Pair<String, String>>){
 }
 
 @Composable
-fun CategoriaChip(emoji: String, nombre: String, isDestacada: Boolean, modifier: Modifier = Modifier){
-    Row (modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(if (isDestacada) Purple else Color.White).border(width = if (isDestacada) 0.dp else 1.5.dp, color = if (isDestacada) Color.Transparent else PurpleLight, shape = RoundedCornerShape(12.dp)
-    ).padding(vertical = 14.dp, horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center){
+fun CategoriaChip(
+    emoji: String,
+    nombre: String,
+    monto: Double,
+    isDestacada: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (isDestacada) Purple else MaterialTheme.colorScheme.surface)
+            .border(
+                width = if (isDestacada) 0.dp else 1.5.dp,
+                color = if (isDestacada) Color.Transparent else PurpleLight,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(vertical = 12.dp, horizontal = 14.dp),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(text = emoji, fontSize = 16.sp)
+            Text(
+                text = nombre,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = if (isDestacada) Color.White else DarkNavy
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = nombre,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = if (isDestacada) Color.White else DarkNavy
+            text = "$${"%,.0f".format(monto)}",
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = if (isDestacada) Color.White.copy(alpha = 0.9f) else Purple
         )
     }
 }
 
+
+@Composable
+private fun EmptyCard(mensaje: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .border(1.5.dp, PurpleLight, RoundedCornerShape(14.dp))
+            .padding(24.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("📊", fontSize = 36.sp)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = mensaje,
+                fontSize = 13.sp,
+                color = TextGray,
+                fontWeight = FontWeight.Medium
+            )
+        }
+    }
+}
+
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun GraphicScreenPreview(){
+fun GraphicScreenPreview() {
     MaterialTheme {
-        GraphicScreen (onBack = {})
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF5F5F5))
+                .padding(horizontal = 16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(60.dp))
+
+            PeriodoSelector(
+                periodos = listOf("Día", "Semanal", "Quincenal"),
+                seleccionado = "Semanal",
+                onSeleccionar = {}
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            FechaSelector(fecha = "12 May 2026")
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            PresupuestoCard(
+                categoria = "Alimentación",
+                emoji = "🍔",
+                asignado = 3200.0,
+                gastado = 1420.0,
+                porcentaje = 44,
+                restante = 1780.0,
+                excedido = false,
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            PresupuestoCard(
+                categoria = "Entretenimiento",
+                emoji = "🎬",
+                asignado = 1850.0,
+                gastado = 2100.0,
+                porcentaje = 100,
+                restante = -250.0,
+                excedido = true,
+            )
+        }
     }
 }
