@@ -31,13 +31,20 @@ import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.lifecycle.viewmodel.compose.viewModel
+import jesusernesto.lopezibarra.gestorgastos.data.viewModel.MovimientoViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit, onNavigateToNewCard: () -> Unit) {
+fun NewMovementScreen(
+    onBack: () -> Unit,
+    onSave: () -> Unit,
+    onNavigateToNewCard: () -> Unit,
+    movimientoViewModel: MovimientoViewModel = viewModel()
+) {
     var isGasto by remember { mutableStateOf(true) }
     var amount by remember { mutableStateOf("0.00") }
     var description by remember { mutableStateOf("") }
@@ -53,6 +60,15 @@ fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit, onNavigateToNewCar
     var photoUri by remember { mutableStateOf<Uri?>(null) }
     var showLocationDialog by remember { mutableStateOf(false) }
     var locationInput by remember { mutableStateOf("") }
+
+    val saveSuccess by movimientoViewModel.saveSuccess.collectAsState()
+
+    LaunchedEffect(saveSuccess) {
+        if (saveSuccess) {
+            onSave()
+            movimientoViewModel.resetSaveSuccess()
+        }
+    }
 
     val photoLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -232,7 +248,8 @@ fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit, onNavigateToNewCar
                     Text(payment.second, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color.White)
                     Text(payment.third, fontWeight = FontWeight.Bold, fontSize = 10.sp, color = Color.White.copy(alpha = 0.5f))
                 }
-                Text(text = "Cambiar >",
+                Text(
+                    text = "Cambiar >",
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp,
                     color = Color.White.copy(alpha = 0.5f),
@@ -272,7 +289,20 @@ fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit, onNavigateToNewCar
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(onClick = onSave, modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().height(46.dp),
+            Button(
+                onClick = {
+                    movimientoViewModel.guardarMovimiento(
+                        isGasto = isGasto,
+                        monto = amount.toFloatOrNull() ?: 0f,
+                        descripcion = description,
+                        fecha = date,
+                        idCategoria = selectedCategory + 1, // +1 porque usualmente los IDs empiezan en 1
+                        idMetodoPago = selectedPayment + 1,
+                        ubicacion = location,
+                        fotoUri = photoUri?.toString()
+                    )
+                },
+                modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().height(46.dp),
                 shape = RoundedCornerShape(10.dp), colors = ButtonDefaults.buttonColors(containerColor = Purple)) {
                 Text("Guardar Movimiento", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = Color.White)
             }

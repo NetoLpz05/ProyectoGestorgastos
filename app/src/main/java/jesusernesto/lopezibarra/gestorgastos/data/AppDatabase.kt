@@ -8,6 +8,7 @@ import jesusernesto.lopezibarra.gestorgastos.data.dao.AlertaDao
 import jesusernesto.lopezibarra.gestorgastos.data.dao.CategoriaDao
 import jesusernesto.lopezibarra.gestorgastos.data.dao.GrupoDao
 import jesusernesto.lopezibarra.gestorgastos.data.dao.UsuarioDao
+import jesusernesto.lopezibarra.gestorgastos.data.dao.MovimientoDao
 import jesusernesto.lopezibarra.gestorgastos.data.entity.UsuarioEntity
 import jesusernesto.lopezibarra.gestorgastos.data.entity.CategoriaEntity
 import jesusernesto.lopezibarra.gestorgastos.data.entity.MetodoPagoEntity
@@ -36,7 +37,7 @@ import jesusernesto.lopezibarra.gestorgastos.data.entity.DeudaGrupoEntity
         AlertaEntity::class,
         UsuarioGrupoEntity::class,
         DeudaGrupoEntity::class,
-    ], version = 1, exportSchema = false
+    ], version = 3, exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
 
@@ -44,6 +45,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun grupoDao(): GrupoDao
     abstract fun alertaDao(): AlertaDao
     abstract fun categoriaDao(): CategoriaDao
+    abstract fun movimientoDao(): MovimientoDao
 
     companion object {
 

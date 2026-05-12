@@ -24,6 +24,8 @@ data class IngresoEntity(
     val monto: Float,
     val descripcion: String,
     val fecha: String,
+    val nombreUbicacion: String? = null,
+    val fotoRecibo: String? = null,
     val latitud: Float? = null,
     val longitud: Float? = null,
     val createdAt: Long = System.currentTimeMillis()
