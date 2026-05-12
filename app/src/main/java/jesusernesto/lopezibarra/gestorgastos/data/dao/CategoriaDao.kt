@@ -27,4 +27,7 @@ interface CategoriaDao {
 
     @Query("SELECT * FROM categoria WHERE nombre = :nombre LIMIT 1")
     suspend fun obtenerPorNombre(nombre: String): CategoriaEntity?
+
+    @Query("SELECT COUNT(*) FROM categoria")
+    suspend fun contarCategorias(): Int
 }

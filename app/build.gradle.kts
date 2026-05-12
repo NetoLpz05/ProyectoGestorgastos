@@ -55,6 +55,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.room:room-runtime:2.7.1")
     implementation("androidx.room:room-ktx:2.7.1")
+    implementation(libs.androidx.compose.foundation)
     ksp("androidx.room:room-compiler:2.7.1")
     implementation(libs.core.ktx)
     implementation(libs.firebase.annotations)

@@ -34,7 +34,6 @@ fun BudgetScreen(
 ) {
     var estaEditando by remember { mutableStateOf(false) }
     var mostrarEnPesos by remember { mutableStateOf(true) }
-    var verGraficas by remember { mutableStateOf(false) }
 
     val presupuestoCompleto by viewModel.presupuestoActual.collectAsState()
     val categorias by viewModel.categorias.collectAsState()
@@ -56,11 +55,6 @@ fun BudgetScreen(
         return
     }
 
-    if (verGraficas) {
-        GraphicScreen(onBack = { verGraficas = false })
-        return
-    }
-
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         AppTopBar(title = "Mi presupuesto", onBack = onBack)
 
@@ -71,7 +65,6 @@ fun BudgetScreen(
                 Icon(Icons.Outlined.TrendingUp, contentDescription = null, tint = GreenIncome, modifier = Modifier.size(22.dp))
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(text = "Ingreso Mensual", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f))
-                Text(text = "Gráficas", color = Purple, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable { verGraficas = true }.padding(end = 8.dp))
                 Text(text = "Editar", color = Purple, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable { estaEditando = true })
             }
             Spacer(modifier = Modifier.height(8.dp))
@@ -96,9 +89,15 @@ fun BudgetScreen(
                 Text("No hay gastos fijos configurados", fontSize = 13.sp, color = TextGray, modifier = Modifier.padding(vertical = 8.dp))
             } else {
                 gastosFijos.forEach { gasto ->
+                    val categoria = categorias.find { it.idCategoria == gasto.idCategoria }
                     Box(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surface).border(1.5.dp, PurpleLight, RoundedCornerShape(12.dp)).padding(horizontal = 16.dp, vertical = 14.dp)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text(text = gasto.nombre, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+                            Column {
+                                Text(text = gasto.nombre, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+                                if (categoria != null) {
+                                    Text(text = categoria.nombre, fontSize = 12.sp, color = TextGray)
+                                }
+                            }
                             Text(text = "$${"%,.0f".format(gasto.monto)}", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
                         }
                     }

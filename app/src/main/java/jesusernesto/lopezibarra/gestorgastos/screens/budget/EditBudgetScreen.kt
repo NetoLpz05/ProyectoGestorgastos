@@ -13,10 +13,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -53,11 +55,9 @@ fun EditBudgetScreen(
             montoIngreso = presupuestoActual?.presupuesto?.ingresoMensual?.toString() ?: ""
             
             listaGastosFijos.clear()
-            if (gastosFijosDB.isEmpty()) {
-                // Mock inicial si no hay nada en DB
-            } else {
+            if (gastosFijosDB.isNotEmpty()) {
                 gastosFijosDB.forEach {
-                    listaGastosFijos.add(GastoFijoState(it.nombre, it.monto.toString()))
+                    listaGastosFijos.add(GastoFijoState(it.nombre, it.monto.toString(), it.idCategoria))
                 }
             }
 
@@ -97,10 +97,19 @@ fun EditBudgetScreen(
             Button(
                 onClick = {
                     val fixedEntities = listaGastosFijos.map { 
-                        GastoFijoEntity(nombre = it.nombre, monto = it.monto.toDoubleOrNull() ?: 0.0, idCategoria = 0, idPresupuesto = 0) 
+                        GastoFijoEntity(
+                            nombre = it.nombre, 
+                            monto = it.monto.toDoubleOrNull() ?: 0.0, 
+                            idCategoria = it.idCategoria,
+                            idPresupuesto = 0
+                        ) 
                     }
                     val detailEntities = listaDetalles.map { 
-                        DetallePresupuestoEntity(idCategoria = it.idCategoria, montoLimite = it.monto.toDoubleOrNull() ?: 0.0, idPresupuesto = 0) 
+                        DetallePresupuestoEntity(
+                            idCategoria = it.idCategoria, 
+                            montoLimite = it.monto.toDoubleOrNull() ?: 0.0, 
+                            idPresupuesto = 0
+                        ) 
                     }
                     viewModel.guardarPresupuesto(totalIngresoDouble, fixedEntities, detailEntities)
                     onBack()
@@ -132,30 +141,72 @@ fun EditBudgetScreen(
             }
 
             item {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("GASTOS FIJOS", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextGray)
-                }
+                Text("GASTOS FIJOS", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextGray)
             }
 
             itemsIndexed(listaGastosFijos) { index, gasto ->
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = gasto.nombre,
-                        onValueChange = { listaGastosFijos[index] = gasto.copy(nombre = it) },
-                        modifier = Modifier.weight(1f),
-                        placeholder = { Text("Ej. Renta") },
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                    OutlinedTextField(
-                        value = gasto.monto,
-                        onValueChange = { listaGastosFijos[index] = gasto.copy(monto = it) },
-                        modifier = Modifier.width(100.dp),
-                        prefix = { Text("$") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                    IconButton(onClick = { listaGastosFijos.removeAt(index) }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = RedExpense)
+                var menuAbierto by remember { mutableStateOf(false) }
+                val categoriaSeleccionada = categorias.find { it.idCategoria == gasto.idCategoria }
+
+                Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(
+                            value = gasto.nombre,
+                            onValueChange = { listaGastosFijos[index] = gasto.copy(nombre = it) },
+                            modifier = Modifier.weight(1f),
+                            placeholder = { Text("Ej. Renta") },
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        OutlinedTextField(
+                            value = gasto.monto,
+                            onValueChange = { listaGastosFijos[index] = gasto.copy(monto = it) },
+                            modifier = Modifier.width(100.dp),
+                            prefix = { Text("$") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        IconButton(onClick = { listaGastosFijos.removeAt(index) }) {
+                            Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = RedExpense)
+                        }
+                    }
+                    
+                    // Selector de categoría para gasto fijo
+                    Box(modifier = Modifier.padding(top = 4.dp).padding(start = 4.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(PurpleLight.copy(alpha = 0.2f))
+                                .clickable { menuAbierto = true }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Icon(Icons.Outlined.Category, contentDescription = null, tint = Purple, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = categoriaSeleccionada?.nombre ?: "Sin categoría",
+                                fontSize = 12.sp,
+                                color = if (categoriaSeleccionada != null) Purple else TextGray
+                            )
+                        }
+
+                        DropdownMenu(expanded = menuAbierto, onDismissRequest = { menuAbierto = false }) {
+                            DropdownMenuItem(
+                                text = { Text("Sin categoría") },
+                                onClick = {
+                                    listaGastosFijos[index] = gasto.copy(idCategoria = null)
+                                    menuAbierto = false
+                                }
+                            )
+                            categorias.forEach { cat ->
+                                DropdownMenuItem(
+                                    text = { Text(cat.nombre) },
+                                    onClick = {
+                                        listaGastosFijos[index] = gasto.copy(idCategoria = cat.idCategoria)
+                                        menuAbierto = false
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -183,6 +234,17 @@ fun EditBudgetScreen(
 
             item {
                 Text("PRESUPUESTO POR CATEGORÍA", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextGray)
+            }
+
+            if (categorias.isEmpty()) {
+                item {
+                    Text(
+                        "No hay categorías disponibles. Crea categorías o reinicia la app.",
+                        color = RedExpense,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
             }
 
             itemsIndexed(listaDetalles) { index, detalle ->
@@ -233,7 +295,7 @@ fun DashedAddButton(label: String, onClick: () -> Unit) {
     }
 }
 
-data class GastoFijoState(val nombre: String, val monto: String)
+data class GastoFijoState(val nombre: String, val monto: String, val idCategoria: Int? = null)
 data class CategoriaPresupuestoState(val idCategoria: Int, val nombre: String, val monto: String)
 
 @Preview
