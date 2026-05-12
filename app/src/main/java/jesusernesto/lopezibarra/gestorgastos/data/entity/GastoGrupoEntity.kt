@@ -36,7 +36,7 @@ data class GastoGrupoEntity(
     val idUsuarioPago: Int,
     val idCategoria: Int,
     val nombre: String,
-    val monto: Float,
-    val fecha: String,
+    val monto: Double,
+    val fecha: Long,
     val createdAt: Long = System.currentTimeMillis()
 )

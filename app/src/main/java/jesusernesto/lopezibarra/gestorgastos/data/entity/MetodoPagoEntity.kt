@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import jesusernesto.lopezibarra.gestorgastos.data.enums.TipoMetodoPago
 
 @Entity(
     tableName = "metodo_pago",
@@ -21,7 +22,7 @@ data class MetodoPagoEntity(
     @PrimaryKey(autoGenerate = true)
     val idMetodoPago: Int = 0,
     val idUsuario: Int,
-    val tipo: String,
+    val tipo: TipoMetodoPago,
     val ultimosDigitos: Int? = null,
     val nombre: String? = null
 )

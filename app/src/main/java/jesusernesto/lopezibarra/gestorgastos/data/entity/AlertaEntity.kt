@@ -28,6 +28,6 @@ data class AlertaEntity(
     val idAlerta: Int = 0,
     val idUsuario: Int,
     val idPresupuesto: Int,
-    val limiteAlerta: Float,
+    val limiteAlerta: Double,
     val activa: Boolean = true
 )

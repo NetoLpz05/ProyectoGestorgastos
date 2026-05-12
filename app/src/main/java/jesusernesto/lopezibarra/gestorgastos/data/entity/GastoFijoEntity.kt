@@ -6,7 +6,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
-    tableName = "detalle_presupuesto",
+    tableName = "gasto_fijo",
     foreignKeys = [
         ForeignKey(
             entity = PresupuestoEntity::class,
@@ -19,18 +19,21 @@ import androidx.room.PrimaryKey
             entity = CategoriaEntity::class,
             parentColumns = ["idCategoria"],
             childColumns = ["idCategoria"],
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.SET_NULL
         )
-    ]
+    ],
+    indices = [Index("idPresupuesto"), Index("idCategoria")]
 )
-data class DetallePresupuestoEntity(
+data class GastoFijoEntity(
 
     @PrimaryKey(autoGenerate = true)
-    val idDetallePresupuesto: Int = 0,
+    val idGastoFijo: Int = 0,
 
-    val idPresupuesto: Int,
+    val nombre: String,
 
-    val idCategoria: Int,
+    val monto: Double,
 
-    val montoLimite: Double
+    val idCategoria: Int? = null,
+
+    val idPresupuesto: Int
 )

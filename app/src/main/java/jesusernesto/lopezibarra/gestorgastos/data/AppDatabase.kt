@@ -4,23 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import jesusernesto.lopezibarra.gestorgastos.data.dao.AlertaDao
-import jesusernesto.lopezibarra.gestorgastos.data.dao.CategoriaDao
-import jesusernesto.lopezibarra.gestorgastos.data.dao.GrupoDao
-import jesusernesto.lopezibarra.gestorgastos.data.dao.UsuarioDao
-import jesusernesto.lopezibarra.gestorgastos.data.entity.UsuarioEntity
-import jesusernesto.lopezibarra.gestorgastos.data.entity.CategoriaEntity
-import jesusernesto.lopezibarra.gestorgastos.data.entity.MetodoPagoEntity
-import jesusernesto.lopezibarra.gestorgastos.data.entity.GrupoEntity
-import jesusernesto.lopezibarra.gestorgastos.data.entity.GastoGrupoEntity
-import jesusernesto.lopezibarra.gestorgastos.data.entity.GastoEntity
-import jesusernesto.lopezibarra.gestorgastos.data.entity.IngresoEntity
-import jesusernesto.lopezibarra.gestorgastos.data.entity.PresupuestoEntity
-import jesusernesto.lopezibarra.gestorgastos.data.entity.DetallePresupuestoEntity
-import jesusernesto.lopezibarra.gestorgastos.data.entity.AlertaEntity
-import jesusernesto.lopezibarra.gestorgastos.data.entity.UsuarioGrupoEntity
-import jesusernesto.lopezibarra.gestorgastos.data.entity.DeudaGrupoEntity
-
+import jesusernesto.lopezibarra.gestorgastos.data.dao.*
+import jesusernesto.lopezibarra.gestorgastos.data.entity.*
 
 @Database(
     entities = [
@@ -36,6 +21,7 @@ import jesusernesto.lopezibarra.gestorgastos.data.entity.DeudaGrupoEntity
         AlertaEntity::class,
         UsuarioGrupoEntity::class,
         DeudaGrupoEntity::class,
+        GastoFijoEntity::class
     ], version = 1, exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -44,6 +30,10 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun grupoDao(): GrupoDao
     abstract fun alertaDao(): AlertaDao
     abstract fun categoriaDao(): CategoriaDao
+    abstract fun presupuestoDao(): PresupuestoDao
+    abstract fun detallePresupuestoDao(): DetallePresupuestoDao
+    abstract fun gastoFijoDao(): GastoFijoDao
+    abstract fun gastoDao(): GastoDao
 
     companion object {
 

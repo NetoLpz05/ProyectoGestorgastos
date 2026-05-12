@@ -2,7 +2,6 @@ package jesusernesto.lopezibarra.gestorgastos.data.repository
 
 import jesusernesto.lopezibarra.gestorgastos.data.dao.AlertaDao
 import jesusernesto.lopezibarra.gestorgastos.data.entity.AlertaEntity
-import jesusernesto.lopezibarra.gestorgastos.dummy.Presupuesto
 import kotlinx.coroutines.flow.Flow
 
 class AlertaRepository (private val dao: AlertaDao){
@@ -16,7 +15,7 @@ class AlertaRepository (private val dao: AlertaDao){
     suspend fun crearAlerta(
         idUsuario: Int,
         idPresupuesto: Int,
-        limiteAlerta: Float
+        limiteAlerta: Double
     ): AlertaEntity{
         val alerta = AlertaEntity(
             idUsuario = idUsuario,
@@ -31,8 +30,8 @@ class AlertaRepository (private val dao: AlertaDao){
     suspend fun toggleAlerta(id: Int, activa: Boolean) =
         dao.toggleActiva(id, activa)
 
-    suspend fun actualizarLimite(id: Int, limite: Float) =
-        dao.actializarLimite(id, limite)
+    suspend fun actualizarLimite(id: Int, limite: Double) =
+        dao.actualizarLimite(id, limite)
 
     suspend fun eliminarAlerta(alerta: AlertaEntity) =
         dao.eliminar(alerta)

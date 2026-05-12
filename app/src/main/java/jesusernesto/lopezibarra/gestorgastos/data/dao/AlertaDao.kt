@@ -31,7 +31,7 @@ interface AlertaDao {
     suspend fun toggleActiva(id: Int, activa: Boolean)
 
     @Query("UPDATE alerta SET limiteAlerta = :limite WHERE idAlerta = :id")
-    suspend fun actializarLimite(id: Int, limite: Float)
+    suspend fun actualizarLimite(id: Int, limite: Double)
 
     @Query("SELECT * FROM alerta WHERE idUsuario = :idUsuario AND activa = 1")
     fun obtenerActivas(idUsuario: Int): Flow<List<AlertaEntity>>

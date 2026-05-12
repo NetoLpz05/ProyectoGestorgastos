@@ -10,7 +10,7 @@ data class GrupoEntity(
     @PrimaryKey(autoGenerate = true)
     val idGrupo: Int = 0,
     val nombre: String,
-    val tipo: String,
+    val tipo: String, //TU DECIDES SI USAS ENUM O NO WE
     val codigoInvitacion: String,
     val imagen: String,
     val createdAt: Long = System.currentTimeMillis()

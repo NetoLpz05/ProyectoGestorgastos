@@ -28,7 +28,7 @@ data class DeudaGrupoEntity(
     val idDeudaGrupo: Int = 0,
     val idGastoGrupo: Int,
     val idUsuario: Int,
-    val montoDeuda: Float,
+    val montoDeuda: Double,
     val pagado: Boolean = false,
     val createdAt: Long = System.currentTimeMillis()
 )

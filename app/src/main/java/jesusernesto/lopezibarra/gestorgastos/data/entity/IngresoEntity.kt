@@ -21,9 +21,9 @@ data class IngresoEntity(
     @PrimaryKey(autoGenerate = true)
     val idIngreso: Int = 0,
     val idUsuario: Int,
-    val monto: Float,
+    val monto: Double,
     val descripcion: String,
-    val fecha: String,
+    val fecha: Long,
     val latitud: Float? = null,
     val longitud: Float? = null,
     val createdAt: Long = System.currentTimeMillis()

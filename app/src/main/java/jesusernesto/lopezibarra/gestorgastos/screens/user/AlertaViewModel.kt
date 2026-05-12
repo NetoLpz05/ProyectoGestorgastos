@@ -73,7 +73,7 @@ class AlertaViewModel (application: Application) : AndroidViewModel(application)
             viewModelScope.launch {
                 _uiState.value.alertas.forEach { alerta ->
                     repository.toggleAlerta(alerta.idAlerta, alertasHabilitadas)
-                    repository.actualizarLimite(alerta.idAlerta, umbral)
+                    repository.actualizarLimite(alerta.idAlerta, umbral.toDouble())
                 }
             }
         }
@@ -96,14 +96,14 @@ class AlertaViewModel (application: Application) : AndroidViewModel(application)
 
     fun actualizarLimite(idAlerta: Int, nuevoLimite: Float){
         viewModelScope.launch {
-            repository.actualizarLimite(idAlerta, nuevoLimite)
+            repository.actualizarLimite(idAlerta, nuevoLimite.toDouble())
         }
     }
 
     fun crearAlertaParaPresupuesto(idPresupuesto: Int, limite: Float){
         val idUsuario = SessionManager.usuarioActual?.idUsuario ?: return
         viewModelScope.launch {
-            repository.crearAlerta(idUsuario, idPresupuesto, limite)
+            repository.crearAlerta(idUsuario, idPresupuesto, limite.toDouble())
             _uiState.update { it.copy(guardado = true) }
         }
     }

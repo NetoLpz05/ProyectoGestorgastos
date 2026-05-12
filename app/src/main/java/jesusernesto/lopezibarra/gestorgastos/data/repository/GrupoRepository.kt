@@ -65,8 +65,8 @@ class GrupoRepository(private val dao: GrupoDao){
         idUsuarioPago: Int,
         idCategoria: Int,
         nombre: String,
-        monto: Float,
-        fecha: String,
+        monto: Double,
+        fecha: Long,
         participantes: List<Int>
     ): GrupoResult {
         if (nombre.isBlank()) return GrupoResult.Error("El nombre no puede estar vacío")
