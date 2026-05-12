@@ -3,15 +3,13 @@ package jesusernesto.lopezibarra.gestorgastos.screens.user
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.*
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -19,10 +17,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import jesusernesto.lopezibarra.gestorgastos.dummy.DummyData
-import jesusernesto.lopezibarra.gestorgastos.dummy.UserProfile
+import androidx.compose.ui.unit.*
+import jesusernesto.lopezibarra.gestorgastos.dummy.*
 import jesusernesto.lopezibarra.gestorgastos.screens.components.AppTopBar
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
 
@@ -32,7 +28,7 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     onSettings: () -> Unit,
     isDarkMode: Boolean = false,
-    onDarkModeChange: (Boolean) -> Unit = {}
+    onDarkModeChange: (Boolean) -> Unit = {},
 ) {
     var biometria by remember { mutableStateOf(true) }
     var estaEditando by remember { mutableStateOf(false) }
