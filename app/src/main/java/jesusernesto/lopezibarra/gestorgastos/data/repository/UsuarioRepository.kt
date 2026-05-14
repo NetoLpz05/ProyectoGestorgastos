@@ -22,7 +22,9 @@ class UsuarioRepository(private val dao: UsuarioDao) {
         email: String,
         contrasena: String,
         fechaNacimiento: String,
-        genero: String
+        genero: String,
+        telefono: String = "",
+        fotoPerfil: String? = null
     ): AuthResult {
 
         if (nombre.isBlank() || apellido.isBlank()) {
@@ -42,7 +44,9 @@ class UsuarioRepository(private val dao: UsuarioDao) {
                 email = email.trim().lowercase(),
                 contrasena = hashContrasena(contrasena),
                 fechaNacimiento = fechaNacimiento,
-                genero = genero
+                genero = genero,
+                telefono = telefono.trim(),
+                fotoPerfil = fotoPerfil
             )
             val id = dao.insertar(nuevoUsuario)
             AuthResult.Exito(nuevoUsuario.copy(idUsuario = id.toInt()))

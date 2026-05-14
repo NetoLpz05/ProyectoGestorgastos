@@ -25,7 +25,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import jesusernesto.lopezibarra.gestorgastos.dummy.DummyData
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -33,6 +32,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.viewmodel.compose.viewModel
 import jesusernesto.lopezibarra.gestorgastos.data.entity.CategoriaEntity
+import jesusernesto.lopezibarra.gestorgastos.data.entity.MetodoPagoEntity
+import jesusernesto.lopezibarra.gestorgastos.data.enums.TipoMetodoPago
 import jesusernesto.lopezibarra.gestorgastos.data.viewModel.MovimientoViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -45,17 +46,21 @@ fun NewMovementScreen(
     onBack: () -> Unit,
     onSave: () -> Unit,
     onNavigateToNewCard: () -> Unit,
-    movimientoViewModel: MovimientoViewModel = viewModel()
+    movimientoViewModel: MovimientoViewModel = viewModel(),
+    metodoPagoViewModel: MetodoPagoViewModel = viewModel()
 ) {
     var isGasto by remember { mutableStateOf(true) }
     var amount by remember { mutableStateOf("0.00") }
     var description by remember { mutableStateOf("") }
-    var date by remember { mutableStateOf("22/03/2026") }
-    var selectedCategory by remember { mutableStateOf(1) }
-    var selectedPayment by remember { mutableStateOf(0) }
+    var date by remember { mutableStateOf(SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())) }
+    var selectedCategory by remember { mutableStateOf(0) }
+    var selectedPaymentIndex by remember { mutableStateOf(0) }
     var showDatePicker by remember { mutableStateOf(false) }
     var isEditingAmount by remember { mutableStateOf(false) }
     var showPaymentSheet by remember { mutableStateOf(false) }
+
+    val metodosPago by metodoPagoViewModel.metodosPago.collectAsState()
+    val selectedMetodo = metodosPago.getOrNull(selectedPaymentIndex)
 
     // Estados para ubicación y fotos
     var location by remember { mutableStateOf<String?>(null) }
@@ -64,7 +69,6 @@ fun NewMovementScreen(
     var locationInput by remember { mutableStateOf("") }
 
     val saveSuccess by movimientoViewModel.saveSuccess.collectAsState()
-
     val categorias by movimientoViewModel.categorias.collectAsState(initial = emptyList())
 
     LaunchedEffect(saveSuccess) {
@@ -79,8 +83,6 @@ fun NewMovementScreen(
     ) { uri: Uri? ->
         photoUri = uri
     }
-
-    val accent = if (isGasto) RedGasto else GreenIncome
 
     Column(
         modifier = Modifier
@@ -151,7 +153,6 @@ fun NewMovementScreen(
                 Spacer(modifier = Modifier.width(4.dp))
 
                 if (isEditingAmount) {
-
                     OutlinedTextField(value = amount,
                         onValueChange = {
                             if (it.matches(Regex("^\\d*\\.?\\d{0,2}\$"))) {
@@ -164,7 +165,6 @@ fun NewMovementScreen(
                         colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = Color.Transparent, focusedBorderColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent, focusedContainerColor = Color.Transparent))
                 } else {
-
                     Text(text = amount, fontWeight = FontWeight.Bold, fontSize = 40.sp,
                         modifier = Modifier.clickable {
                             isEditingAmount = true
@@ -235,32 +235,54 @@ fun NewMovementScreen(
                 color = TextGray,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
             )
-            val payment = DummyData.formasPago[selectedPayment]
-            Row(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth()
-                    .height(57.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(GreenPayment)
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(Icons.Outlined.Wallet, contentDescription = null, tint = Color.White)
-                Spacer(modifier = Modifier.width(10.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(payment.second, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color.White)
-                    Text(payment.third, fontWeight = FontWeight.Bold, fontSize = 10.sp, color = Color.White.copy(alpha = 0.5f))
+            
+            selectedMetodo?.let { metodo ->
+                val emoji = when(metodo.tipo) {
+                    TipoMetodoPago.EFECTIVO -> "💵"
+                    else -> "💳"
                 }
-                Text(
-                    text = "Cambiar >",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
-                    color = Color.White.copy(alpha = 0.5f),
-                    modifier = Modifier.clickable {
-                        showPaymentSheet = true
+                val label = metodo.nombre ?: (if (metodo.tipo == TipoMetodoPago.TARJETA_CREDITO) "Tarjeta de Crédito" else if (metodo.tipo == TipoMetodoPago.TARJETA_DEBITO) "Tarjeta de Débito" else "Efectivo")
+                val detail = if (metodo.tipo == TipoMetodoPago.EFECTIVO) "DINERO FÍSICO" else "**** ${metodo.ultimosDigitos ?: "0000"}"
+
+                Row(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth()
+                        .height(57.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(GreenPayment)
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = emoji, fontSize = 20.sp)
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(label, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color.White)
+                        Text(detail, fontWeight = FontWeight.Bold, fontSize = 10.sp, color = Color.White.copy(alpha = 0.5f))
                     }
-                )
+                    Text(
+                        text = "Cambiar >",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp,
+                        color = Color.White.copy(alpha = 0.5f),
+                        modifier = Modifier.clickable {
+                            showPaymentSheet = true
+                        }
+                    )
+                }
+            } ?: run {
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth()
+                        .height(57.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(PurpleLight.copy(alpha = 0.2f))
+                        .clickable { showPaymentSheet = true },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Seleccionar método de pago", color = TextGray, fontSize = 14.sp)
+                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -295,13 +317,15 @@ fun NewMovementScreen(
 
             Button(
                 onClick = {
+                    val catId = categorias.getOrNull(selectedCategory)?.idCategoria ?: 0
+                    val mpId = selectedMetodo?.idMetodoPago ?: 0
                     movimientoViewModel.guardarMovimiento(
                         isGasto = isGasto,
                         monto = amount.toFloatOrNull() ?: 0f,
                         descripcion = description,
                         fecha = date,
-                        idCategoria = categorias[selectedCategory].idCategoria,
-                        idMetodoPago = selectedPayment + 1,
+                        idCategoria = catId,
+                        idMetodoPago = mpId,
                         ubicacion = location,
                         fotoUri = photoUri?.toString()
                     )
@@ -319,9 +343,10 @@ fun NewMovementScreen(
                 onDismissRequest = { showPaymentSheet = false }
             ) {
                 FormaPagoCard(
-                    selectedIndex = selectedPayment,
+                    metodos = metodosPago,
+                    selectedIndex = selectedPaymentIndex,
                     onSelect = { index ->
-                        selectedPayment = index
+                        selectedPaymentIndex = index
                         showPaymentSheet = false
                     },
                     onAddCard = {
@@ -400,9 +425,7 @@ fun CategoryGrid(
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         itemsIndexed(categories) { index, item ->
-
             val partes = item.nombre.split(" ", limit = 2)
-
             val emoji = partes.firstOrNull() ?: "📦"
             val texto = partes.getOrNull(1) ?: item.nombre
 
@@ -427,7 +450,12 @@ private fun movementFieldColors() = OutlinedTextFieldDefaults.colors(
 )
 
 @Composable
-fun FormaPagoCard(selectedIndex: Int, onSelect: (Int) -> Unit, onAddCard: () -> Unit = {}) {
+fun FormaPagoCard(
+    metodos: List<MetodoPagoEntity>,
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit,
+    onAddCard: () -> Unit = {}
+) {
     Column(
         modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).padding(horizontal = 20.dp).padding(bottom = 32.dp)) {
         Box(modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 16.dp).size(width = 40.dp, height = 4.dp)
@@ -436,8 +464,16 @@ fun FormaPagoCard(selectedIndex: Int, onSelect: (Int) -> Unit, onAddCard: () -> 
         Text(text = "Selecciona el método", fontWeight = FontWeight.Bold, fontSize = 18.sp,
             color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp))
 
-        DummyData.formasPago.forEachIndexed { index, (emoji, label, detail) ->
+        metodos.forEachIndexed { index, metodo ->
             val isSelected = selectedIndex == index
+            
+            val emoji = when(metodo.tipo) {
+                TipoMetodoPago.EFECTIVO -> "💵"
+                else -> "💳"
+            }
+            val label = metodo.nombre ?: (if (metodo.tipo == TipoMetodoPago.TARJETA_CREDITO) "Tarjeta de Crédito" else if (metodo.tipo == TipoMetodoPago.TARJETA_DEBITO) "Tarjeta de Débito" else "Efectivo")
+            val detail = if (metodo.tipo == TipoMetodoPago.EFECTIVO) "DINERO FÍSICO" else "**** ${metodo.ultimosDigitos ?: "0000"}"
+
             Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)
                 .clip(RoundedCornerShape(12.dp)).background(if (isSelected) Purple else PurpleLight.copy(alpha = 0.2f))
                 .clickable { onSelect(index) }.padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -453,7 +489,6 @@ fun FormaPagoCard(selectedIndex: Int, onSelect: (Int) -> Unit, onAddCard: () -> 
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(text = label, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface)
-
                     Text(text = detail, fontSize = 12.sp, color = if (isSelected) Color.White.copy(alpha = 0.7f) else TextGray)
                 }
 
@@ -487,16 +522,6 @@ fun NewMovementScreenPreview() {
             onSave = {},
             onNavigateToNewCard = {}
         )
-    }
-}
-
-@Preview(showBackground = true,)
-@Composable
-fun FormaPagoCardPreview() {
-    GestorGastosTheme {
-        var selectedIndex by remember { mutableStateOf(0) }
-
-        FormaPagoCard(selectedIndex = selectedIndex, onSelect = { selectedIndex = it })
     }
 }
 

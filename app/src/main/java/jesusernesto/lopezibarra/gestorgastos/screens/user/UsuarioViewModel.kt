@@ -52,7 +52,9 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
         contrasena: String,
         confirmacion: String,
         fechaNacimiento: String,
-        genero: String
+        genero: String,
+        telefono: String = "",
+        fotoPerfil: String? = null
     ) {
         if (contrasena != confirmacion) {
             _uiState.value = AuthUiState.Error("Las contraseñas no coinciden")
@@ -68,7 +70,9 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
                 email = email,
                 contrasena = contrasena,
                 fechaNacimiento = fechaNacimiento,
-                genero = genero
+                genero = genero,
+                telefono = telefono,
+                fotoPerfil = fotoPerfil
             )
 
             _uiState.value = when (result) {

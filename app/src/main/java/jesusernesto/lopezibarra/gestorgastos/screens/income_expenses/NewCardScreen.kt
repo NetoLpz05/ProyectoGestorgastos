@@ -17,14 +17,22 @@ import androidx.compose.ui.text.input.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
+import androidx.lifecycle.viewmodel.compose.viewModel
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddCardScreen(onBack: () -> Unit, onSave: () -> Unit) {
+fun AddCardScreen(
+    onBack: () -> Unit,
+    onSave: () -> Unit,
+    viewModel: MetodoPagoViewModel = viewModel()
+) {
+    var nombreTarjeta by remember { mutableStateOf("") }
     var numeroTarjeta by remember { mutableStateOf("") }
     var fechaExp by remember { mutableStateOf("") }
     var cvv by remember { mutableStateOf("") }
     var propietario by remember { mutableStateOf("") }
+    var esCredito by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
 
@@ -54,13 +62,64 @@ fun AddCardScreen(onBack: () -> Unit, onSave: () -> Unit) {
         Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
 
             Spacer(modifier = Modifier.height(20.dp))
-            CardPreview(number = numeroTarjeta, holder = propietario, expiry = fechaExp)
+            CardPreview(number = numeroTarjeta, holder = propietario, expiry = fechaExp, name = nombreTarjeta)
             Spacer(modifier = Modifier.height(28.dp))
+
+            CardFieldLabel("NOMBRE DE LA TARJETA")
+            CardTextField(
+                value = nombreTarjeta,
+                onValueChange = { nombreTarjeta = it },
+                placeholder = "Ej. Amex Oro",
+                keyboardType = KeyboardType.Text,
+                leadingIcon = Icons.Outlined.Label
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            CardFieldLabel("TIPO DE TARJETA")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                FilterChip(
+                    selected = !esCredito,
+                    onClick = { esCredito = false },
+                    label = { Text("Débito") },
+                    modifier = Modifier.weight(1f),
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = PurpleLight,
+                        selectedLabelColor = Purple
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = !esCredito,
+                        borderColor = PurpleLight,
+                        selectedBorderColor = Purple
+                    )
+                )
+                FilterChip(
+                    selected = esCredito,
+                    onClick = { esCredito = true },
+                    label = { Text("Crédito") },
+                    modifier = Modifier.weight(1f),
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = PurpleLight,
+                        selectedLabelColor = Purple
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = esCredito,
+                        borderColor = PurpleLight,
+                        selectedBorderColor = Purple
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             CardFieldLabel("NÚMERO DE TARJETA")
             CardTextField(value = numeroTarjeta,
                 onValueChange = {
-                    //Se limita a 16 dígitos
                     val digits = it.filter { c -> c.isDigit() }.take(16)
                     numeroTarjeta = digits.chunked(4).joinToString(" ")
                 },
@@ -98,7 +157,6 @@ fun AddCardScreen(onBack: () -> Unit, onSave: () -> Unit) {
                     CardFieldLabel("CÓDIGO DE SEGURIDAD")
                     OutlinedTextField(
                         value = cvv,
-                        //Se limita a 4 dígitos
                         onValueChange = {
                             cvv = it.filter { c -> c.isDigit() }.take(4)
                         },
@@ -122,11 +180,21 @@ fun AddCardScreen(onBack: () -> Unit, onSave: () -> Unit) {
             CardTextField(value = propietario, onValueChange = { propietario = it }, placeholder = "Como aparece en la tarjeta",
                 keyboardType = KeyboardType.Text, leadingIcon = Icons.Outlined.Person)
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(30.dp))
         }
 
         Surface(shadowElevation = 8.dp, color = Color.White) {
-            Button(onClick = onSave,
+            Button(
+                onClick = {
+                    if (nombreTarjeta.isNotBlank() && numeroTarjeta.replace(" ", "").length >= 4) {
+                        viewModel.guardarTarjeta(
+                            nombre = nombreTarjeta,
+                            numeroCompleto = numeroTarjeta.replace(" ", ""),
+                            esCredito = esCredito,
+                            onSuccess = onSave
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp).height(46.dp),
                 shape = RoundedCornerShape(10.dp), colors = ButtonDefaults.buttonColors(containerColor = Purple)) {
 
@@ -137,11 +205,14 @@ fun AddCardScreen(onBack: () -> Unit, onSave: () -> Unit) {
 }
 
 @Composable
-private fun CardPreview(number: String, holder: String, expiry: String) {
+private fun CardPreview(number: String, holder: String, expiry: String, name: String) {
     Box(modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(16.dp))
             .background(Purple).padding(24.dp)) {
         Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
-            Box(modifier = Modifier.size(width = 40.dp, height = 30.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFFFFD700).copy(alpha = 0.8f)))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
+                Box(modifier = Modifier.size(width = 40.dp, height = 30.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFFFFD700).copy(alpha = 0.8f)))
+                Text(text = name.uppercase(), color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
 
             Text(text = number.ifBlank { "•••• •••• •••• ••••" }, fontWeight = FontWeight.Bold,
                 fontSize = 18.sp, color = Color.White, letterSpacing = 2.sp)
@@ -190,7 +261,5 @@ private fun cardTextFieldColors() = OutlinedTextFieldDefaults.colors(
 @Preview(showBackground = true,)
 @Composable
 fun AddCardScreenPreview() {
-    GestorGastosTheme {
-        AddCardScreen(onBack = {}, onSave = {})
-    }
+    AddCardScreen(onBack = {}, onSave = {})
 }
