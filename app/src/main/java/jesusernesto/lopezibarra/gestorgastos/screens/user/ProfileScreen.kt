@@ -1,30 +1,33 @@
 package jesusernesto.lopezibarra.gestorgastos.screens.user
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import jesusernesto.lopezibarra.gestorgastos.dummy.DummyData
-import jesusernesto.lopezibarra.gestorgastos.dummy.UserProfile
+import androidx.compose.ui.unit.*
+import androidx.lifecycle.viewmodel.compose.viewModel
+import jesusernesto.lopezibarra.gestorgastos.data.SessionManager
+import jesusernesto.lopezibarra.gestorgastos.data.entity.UsuarioEntity
 import jesusernesto.lopezibarra.gestorgastos.screens.components.AppTopBar
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 
 @Composable
 fun ProfileScreen(
@@ -32,18 +35,26 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     onSettings: () -> Unit,
     isDarkMode: Boolean = false,
-    onDarkModeChange: (Boolean) -> Unit = {}
+    onDarkModeChange: (Boolean) -> Unit = {},
+    viewModel: UsuarioViewModel = viewModel()
 ) {
-    var biometria by remember { mutableStateOf(true) }
+    val usuario = SessionManager.usuarioActual
+    var biometria by remember { mutableStateOf(usuario?.biometriaActiva ?: false) }
     var estaEditando by remember { mutableStateOf(false) }
 
-    val user = DummyData.userActual
+    if (usuario == null) {
+        onLogout()
+        return
+    }
 
     if (estaEditando) {
         EditProfileScreen(
-            user = user,
+            user = usuario,
             onBack = { estaEditando = false },
-            onSave = { estaEditando = false },
+            onSave = { nombre, apellido, telefono, foto ->
+                viewModel.actualizarPerfil(nombre, apellido, telefono, foto)
+                estaEditando = false
+            },
             onEditNotifications = {
                 estaEditando = false
                 onSettings()
@@ -61,21 +72,51 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(modifier = Modifier.size(114.dp).clip(CircleShape).background(PurpleLight).border(3.dp, PurpleLight, CircleShape), contentAlignment = Alignment.Center) {
-                    Image(painter = painterResource(id = user.pfp), contentDescription = "Foto de perfil", modifier = Modifier.fillMaxSize().clip(CircleShape))
+                Box(
+                    modifier = Modifier
+                        .size(114.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .border(3.dp, PurpleLight, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (usuario.fotoPerfil != null) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(usuario.fotoPerfil)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "Foto de perfil",
+                            modifier = Modifier.fillMaxSize().clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            Icons.Filled.Person,
+                            contentDescription = "Sin foto",
+                            modifier = Modifier.size(60.dp),
+                            tint = PurpleLight
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(user.nombre, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground)
-                Text(user.correo, fontSize = 14.sp, color = TextGray)
-                Text(text = "Editar Foto", color = Purple, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 6.dp))
+                Text("${usuario.nombre} ${usuario.apellido}", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground)
+                Text(usuario.email, fontSize = 14.sp, color = TextGray)
+                Text(
+                    text = "Editar Perfil",
+                    color = Purple,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(top = 6.dp).clickable { estaEditando = true }
+                )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
             Row(modifier = Modifier.padding(horizontal = 20.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text("INFORMACIÓN PERSONAL", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextGray, modifier = Modifier.weight(1f))
-                Text(text = "Editar Información", color = Purple, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable { estaEditando = true })
+                Text(text = "Editar", color = Purple, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable { estaEditando = true })
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -83,9 +124,11 @@ fun ProfileScreen(
             Box(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().clip(RoundedCornerShape(12.dp))
                 .border(2.dp, PurpleLight, RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surface)) {
                 Column {
-                    InfoRow(icon = Icons.Outlined.Person, label = "NOMBRE COMPLETO", value = user.nombre)
+                    InfoRow(icon = Icons.Outlined.Person, label = "NOMBRE COMPLETO", value = "${usuario.nombre} ${usuario.apellido}")
                     Divider(color = PurpleLight)
-                    InfoRow(icon = Icons.Outlined.Phone, label = "TELÉFONO", value = user.telefono)
+                    InfoRow(icon = Icons.Outlined.Email, label = "EMAIL", value = usuario.email)
+                    Divider(color = PurpleLight)
+                    InfoRow(icon = Icons.Outlined.Phone, label = "TELÉFONO", value = usuario.telefono.ifBlank { "No registrado" })
                 }
             }
 
@@ -106,7 +149,10 @@ fun ProfileScreen(
                     }
                     Switch(
                         checked = biometria,
-                        onCheckedChange = { biometria = it },
+                        onCheckedChange = { 
+                            biometria = it
+                            viewModel.actualizarBiometria(it)
+                        },
                         colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = Purple)
                     )
                 }
@@ -168,13 +214,21 @@ fun ProfileScreen(
 
 @Composable
 fun EditProfileScreen(
-    user: UserProfile,
+    user: UsuarioEntity,
     onBack: () -> Unit,
-    onSave: () -> Unit,
+    onSave: (nombre: String, apellido: String, telefono: String, foto: String?) -> Unit,
     onEditNotifications: () -> Unit
 ) {
     var name by remember { mutableStateOf(user.nombre) }
+    var lastName by remember { mutableStateOf(user.apellido) }
     var phone by remember { mutableStateOf(user.telefono) }
+    var photoUri by remember { mutableStateOf<String?>(user.fotoPerfil) }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { photoUri = it.toString() }
+    }
 
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
 
@@ -185,18 +239,56 @@ fun EditProfileScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(modifier = Modifier.size(114.dp).clip(CircleShape).background(PurpleLight),
-                    contentAlignment = Alignment.Center) {
-                    Image(painter = painterResource(id = user.pfp),
-                        contentDescription = "Foto de perfil", modifier = Modifier.size(114.dp).clip(CircleShape))
+                Box(
+                    modifier = Modifier
+                        .size(114.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .border(1.dp, PurpleLight, CircleShape)
+                        .clickable { launcher.launch("image/*") },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (photoUri != null) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(photoUri)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "Foto de perfil",
+                            modifier = Modifier.fillMaxSize().clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            Icons.Filled.Person,
+                            contentDescription = "Sin foto",
+                            modifier = Modifier.size(60.dp),
+                            tint = PurpleLight
+                        )
+                    }
+                    
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.3f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Outlined.CameraAlt, contentDescription = null, tint = Color.White)
+                    }
                 }
-                Text("Editar Foto", color = Purple, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(top = 6.dp, bottom = 16.dp))
+                Text("Cambiar Foto", color = Purple, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(top = 6.dp, bottom = 16.dp).clickable { launcher.launch("image/*") })
             }
 
-            TituloSeccion("NOMBRE COMPLETO")
+            TituloSeccion("NOMBRE")
             Spacer(modifier = Modifier.height(4.dp))
             EditField(value = name, onValueChange = { name = it }, icon = Icons.Outlined.Person)
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            TituloSeccion("APELLIDO")
+            Spacer(modifier = Modifier.height(4.dp))
+            EditField(value = lastName, onValueChange = { lastName = it }, icon = Icons.Outlined.Person)
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -229,7 +321,7 @@ fun EditProfileScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
-                onClick = onSave,
+                onClick = { onSave(name, lastName, phone, photoUri) },
                 modifier = Modifier.fillMaxWidth().height(46.dp),
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Purple)
@@ -276,36 +368,4 @@ private fun EditField(value: String, onValueChange: (String) -> Unit, icon: Imag
             focusedTextColor = MaterialTheme.colorScheme.onSurface
         )
     )
-}
-
-@Preview(showBackground = true, name = "Vista Perfil Usuario")
-@Composable
-fun ProfileScreenPreview() {
-    MaterialTheme {
-        ProfileScreen(
-            onBack = {},
-            onLogout = {},
-            onSettings = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Vista Editar Perfil")
-@Composable
-fun EditProfileScreenPreview() {
-    val mockUser = UserProfile(
-        nombre = "Jesús Ernesto",
-        correo = "jesus@ejemplo.com",
-        telefono = "6441234567",
-        pfp = android.R.drawable.ic_menu_gallery
-    )
-
-    MaterialTheme {
-        EditProfileScreen(
-            user = mockUser,
-            onBack = {},
-            onSave = {},
-            onEditNotifications = {}
-        )
-    }
 }

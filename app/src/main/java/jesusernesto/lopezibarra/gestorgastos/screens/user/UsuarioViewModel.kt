@@ -81,6 +81,44 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    fun actualizarPerfil(
+        nombre: String,
+        apellido: String,
+        telefono: String,
+        fotoPerfil: String?
+    ) {
+        val usuario = SessionManager.usuarioActual ?: return
+        
+        viewModelScope.launch {
+            _uiState.value = AuthUiState.Cargando
+            
+            val usuarioActualizado = usuario.copy(
+                nombre = nombre,
+                apellido = apellido,
+                telefono = telefono,
+                fotoPerfil = fotoPerfil
+            )
+            
+            val result = repository.actualizarPerfil(usuarioActualizado)
+            
+            _uiState.value = when (result) {
+                is AuthResult.Exito -> {
+                    SessionManager.usuarioActual = result.usuario
+                    AuthUiState.Exito(result.usuario)
+                }
+                is AuthResult.Error -> AuthUiState.Error(result.mensaje)
+            }
+        }
+    }
+
+    fun actualizarBiometria(activa: Boolean) {
+        val usuario = SessionManager.usuarioActual ?: return
+        viewModelScope.launch {
+            repository.cambiarBiometria(usuario.idUsuario, activa)
+            SessionManager.usuarioActual = usuario.copy(biometriaActiva = activa)
+        }
+    }
+
     fun cerrarSesion() {
         SessionManager.cerrarSesion()
         _uiState.value = AuthUiState.Idle

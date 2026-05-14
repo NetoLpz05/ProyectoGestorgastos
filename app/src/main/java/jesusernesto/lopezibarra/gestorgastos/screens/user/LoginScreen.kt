@@ -199,7 +199,6 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(uiState) {

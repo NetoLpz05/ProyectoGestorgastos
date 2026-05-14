@@ -1,5 +1,8 @@
 package jesusernesto.lopezibarra.gestorgastos.screens.income_expenses
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -28,13 +31,22 @@ import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.lifecycle.viewmodel.compose.viewModel
+import jesusernesto.lopezibarra.gestorgastos.data.entity.CategoriaEntity
+import jesusernesto.lopezibarra.gestorgastos.data.viewModel.MovimientoViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit, onNavigateToNewCard: () -> Unit) {
+fun NewMovementScreen(
+    onBack: () -> Unit,
+    onSave: () -> Unit,
+    onNavigateToNewCard: () -> Unit,
+    movimientoViewModel: MovimientoViewModel = viewModel()
+) {
     var isGasto by remember { mutableStateOf(true) }
     var amount by remember { mutableStateOf("0.00") }
     var description by remember { mutableStateOf("") }
@@ -44,6 +56,29 @@ fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit, onNavigateToNewCar
     var showDatePicker by remember { mutableStateOf(false) }
     var isEditingAmount by remember { mutableStateOf(false) }
     var showPaymentSheet by remember { mutableStateOf(false) }
+
+    // Estados para ubicación y fotos
+    var location by remember { mutableStateOf<String?>(null) }
+    var photoUri by remember { mutableStateOf<Uri?>(null) }
+    var showLocationDialog by remember { mutableStateOf(false) }
+    var locationInput by remember { mutableStateOf("") }
+
+    val saveSuccess by movimientoViewModel.saveSuccess.collectAsState()
+
+    val categorias by movimientoViewModel.categorias.collectAsState(initial = emptyList())
+
+    LaunchedEffect(saveSuccess) {
+        if (saveSuccess) {
+            onSave()
+            movimientoViewModel.resetSaveSuccess()
+        }
+    }
+
+    val photoLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        photoUri = uri
+    }
 
     val accent = if (isGasto) RedGasto else GreenIncome
 
@@ -186,7 +221,7 @@ fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit, onNavigateToNewCar
             SectionLabel("Categoría")
 
             CategoryGrid(
-                categories = DummyData.categorias,
+                categories = categorias,
                 selectedIndex = selectedCategory,
                 onItemClick = { selectedCategory = it }
             )
@@ -230,28 +265,48 @@ fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit, onNavigateToNewCar
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Row(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().height(47.dp).clip(RoundedCornerShape(10.dp))
-                .border(2.dp, PurpleLight, RoundedCornerShape(10.dp), ).padding(horizontal = 16.dp).background(MaterialTheme.colorScheme.surface), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().height(47.dp)
+                    .clip(RoundedCornerShape(10.dp)).border(2.dp, PurpleLight, RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.surface).clickable { showLocationDialog = true }.padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Outlined.LocationOn, contentDescription = null, tint = Purple, modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.width(10.dp))
-                Text("Agregar ubicación...", fontWeight = FontWeight.Bold, fontSize = 12.sp,
-                    color = TextGray, fontStyle = FontStyle.Italic)
+                Text(text = location ?: "Agregar ubicación...", fontWeight = FontWeight.Bold, fontSize = 12.sp,
+                    color = if (location == null) TextGray else Purple, fontStyle = if (location == null) FontStyle.Italic else FontStyle.Normal)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().height(47.dp)
-                    .clip(RoundedCornerShape(10.dp)).border(2.dp, PurpleLight, RoundedCornerShape(10.dp)).padding(horizontal = 16.dp).background(MaterialTheme.colorScheme.surface),
-                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                Icon(Icons.Outlined.CameraAlt, contentDescription = null, tint = TextGray, modifier = Modifier.size(20.dp))
+            Row(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().height(47.dp).clip(RoundedCornerShape(10.dp))
+                    .border(2.dp, PurpleLight, RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.surface).clickable { photoLauncher.launch("image/*") }.padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center) {
+                Icon(imageVector = if (photoUri == null) Icons.Outlined.CameraAlt else Icons.Outlined.CheckCircle,
+                    contentDescription = null, tint = if (photoUri == null) TextGray else GreenIncome,
+                    modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Adjuntar foto del recibo", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = TextGray)
+                Text(text = if (photoUri == null) "Adjuntar foto del recibo" else "Foto adjuntada", fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp, color = if (photoUri == null) TextGray else GreenIncome)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(onClick = onSave, modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().height(46.dp),
+            Button(
+                onClick = {
+                    movimientoViewModel.guardarMovimiento(
+                        isGasto = isGasto,
+                        monto = amount.toFloatOrNull() ?: 0f,
+                        descripcion = description,
+                        fecha = date,
+                        idCategoria = categorias[selectedCategory].idCategoria,
+                        idMetodoPago = selectedPayment + 1,
+                        ubicacion = location,
+                        fotoUri = photoUri?.toString()
+                    )
+                },
+                modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().height(46.dp),
                 shape = RoundedCornerShape(10.dp), colors = ButtonDefaults.buttonColors(containerColor = Purple)) {
                 Text("Guardar Movimiento", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = Color.White)
             }
@@ -275,6 +330,28 @@ fun NewMovementScreen(onBack: () -> Unit, onSave: () -> Unit, onNavigateToNewCar
                     }
                 )
             }
+        }
+
+        if (showLocationDialog) {
+            AlertDialog(onDismissRequest = { showLocationDialog = false },
+                title = { Text("Agregar Ubicación") },
+                text = {
+                    OutlinedTextField(value = locationInput, onValueChange = { locationInput = it },
+                        label = { Text("Lugar / Dirección") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                },
+                confirmButton = {
+                    TextButton(onClick = { location = locationInput
+                        showLocationDialog = false
+                    }) {
+                        Text("Aceptar")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showLocationDialog = false }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
         }
     }
 }
@@ -312,7 +389,7 @@ private fun CategoryItem(
 
 @Composable
 fun CategoryGrid(
-    categories: List<Pair<String, String>>,
+    categories: List<CategoriaEntity>,
     selectedIndex: Int,
     onItemClick: (Int) -> Unit
 ) {
@@ -323,9 +400,15 @@ fun CategoryGrid(
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         itemsIndexed(categories) { index, item ->
+
+            val partes = item.nombre.split(" ", limit = 2)
+
+            val emoji = partes.firstOrNull() ?: "📦"
+            val texto = partes.getOrNull(1) ?: item.nombre
+
             CategoryItem(
-                emoji = item.first,
-                label = item.second,
+                emoji = emoji,
+                label = texto,
                 selected = index == selectedIndex,
                 onClick = { onItemClick(index) }
             )

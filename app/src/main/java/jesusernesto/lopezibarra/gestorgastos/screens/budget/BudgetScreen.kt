@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import jesusernesto.lopezibarra.gestorgastos.data.SessionManager
+import jesusernesto.lopezibarra.gestorgastos.data.viewModel.BudgetViewModel
 import jesusernesto.lopezibarra.gestorgastos.screens.components.AppTopBar
 import jesusernesto.lopezibarra.gestorgastos.screens.graphs.GraphicScreen
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.*

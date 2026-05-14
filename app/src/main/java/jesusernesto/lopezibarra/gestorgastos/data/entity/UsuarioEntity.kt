@@ -17,6 +17,8 @@ data class UsuarioEntity(
     val contrasena: String,
     val fechaNacimiento: String,
     val genero: String,
+    val telefono: String = "",
+    val fotoPerfil: String? = null,
     val biometriaActiva: Boolean = false,
     val tema: String = "CLARO",
     val createdAt: Long = System.currentTimeMillis()

@@ -7,6 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import jesusernesto.lopezibarra.gestorgastos.data.dao.*
 import jesusernesto.lopezibarra.gestorgastos.data.entity.*
+import jesusernesto.lopezibarra.gestorgastos.data.enums.TipoMetodoPago
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -26,7 +27,7 @@ import kotlinx.coroutines.launch
         UsuarioGrupoEntity::class,
         DeudaGrupoEntity::class,
         GastoFijoEntity::class
-    ], version = 2, exportSchema = false
+    ], version = 4, exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
 
@@ -38,52 +39,60 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun detallePresupuestoDao(): DetallePresupuestoDao
     abstract fun gastoFijoDao(): GastoFijoDao
     abstract fun gastoDao(): GastoDao
+    abstract fun movimientoDao(): MovimientoDao
+    abstract fun metodoPagoDao(): MetodoPagoDao
 
     companion object {
-
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
-
-                lateinit var instance: AppDatabase
-
-                instance = Room.databaseBuilder(
+                val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
                     "gestorgastos_db"
                 )
-                    .addCallback(object : RoomDatabase.Callback() {
-
-                        override fun onCreate(db: SupportSQLiteDatabase) {
-                            super.onCreate(db)
-
-                            CoroutineScope(Dispatchers.IO).launch {
-
-                                val dao = instance.categoriaDao()
-
-                                if (dao.contarCategorias() == 0) {
-
-                                    dao.insertarTodas(
-                                        listOf(
-                                            CategoriaEntity(nombre = "🏠 Vivienda", predefinida = true),
-                                            CategoriaEntity(nombre = "🎬 Entretenimiento", predefinida = true),
-                                            CategoriaEntity(nombre = "🚗 Transporte", predefinida = true),
-                                            CategoriaEntity(nombre = "🍔 Alimentación", predefinida = true),
-                                            CategoriaEntity(nombre = "❤️ Salud", predefinida = true),
-                                            CategoriaEntity(nombre = "📦 Otros", predefinida = true)
-                                        )
-                                    )
-                                }
-                            }
-                        }
-                    })
+                    .addCallback(DatabaseCallback(context))
                     .fallbackToDestructiveMigration()
                     .build()
-
                 INSTANCE = instance
                 instance
+            }
+        }
+
+        private class DatabaseCallback(private val context: Context) : RoomDatabase.Callback() {
+            override fun onOpen(db: SupportSQLiteDatabase) {
+                super.onOpen(db)
+                INSTANCE?.let { database ->
+                    CoroutineScope(Dispatchers.IO).launch {
+                        prepopulateDatabase(database)
+                    }
+                }
+            }
+
+            private suspend fun prepopulateDatabase(db: AppDatabase) {
+                val categoriaDao = db.categoriaDao()
+                val metodoPagoDao = db.metodoPagoDao()
+
+                if (categoriaDao.contarCategorias() == 0) {
+                    categoriaDao.insertarTodas(
+                        listOf(
+                            CategoriaEntity(nombre = "🏠 Vivienda", predefinida = true),
+                            CategoriaEntity(nombre = "🎬 Entretenimiento", predefinida = true),
+                            CategoriaEntity(nombre = "🚗 Transporte", predefinida = true),
+                            CategoriaEntity(nombre = "🍔 Alimentación", predefinida = true),
+                            CategoriaEntity(nombre = "❤️ Salud", predefinida = true),
+                            CategoriaEntity(nombre = "📦 Otros", predefinida = true)
+                        )
+                    )
+                }
+
+                if (metodoPagoDao.contarMP() == 0) {
+                    metodoPagoDao.insert(MetodoPagoEntity(tipo = TipoMetodoPago.EFECTIVO, nombre = "Efectivo"))
+                    metodoPagoDao.insert(MetodoPagoEntity(tipo = TipoMetodoPago.TARJETA_DEBITO, nombre = "Tarjeta Débito"))
+                    metodoPagoDao.insert(MetodoPagoEntity(tipo = TipoMetodoPago.TARJETA_CREDITO, nombre = "Tarjeta Crédito"))
+                }
             }
         }
     }

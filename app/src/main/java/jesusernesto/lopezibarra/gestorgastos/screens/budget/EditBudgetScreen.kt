@@ -31,6 +31,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import jesusernesto.lopezibarra.gestorgastos.data.entity.CategoriaEntity
 import jesusernesto.lopezibarra.gestorgastos.data.entity.DetallePresupuestoEntity
 import jesusernesto.lopezibarra.gestorgastos.data.entity.GastoFijoEntity
+import jesusernesto.lopezibarra.gestorgastos.data.viewModel.BudgetViewModel
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)

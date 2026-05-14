@@ -1,5 +1,5 @@
 package jesusernesto.lopezibarra.gestorgastos.data.enums
 
 enum class TipoMetodoPago {
-    EFECTIVO, TARJETA_CREDITO, TARJETA_DEBITO, TRANSFERENCIA_BANCARIA, OTRO
+    EFECTIVO,TARJETA_DEBITO,  TARJETA_CREDITO
 }

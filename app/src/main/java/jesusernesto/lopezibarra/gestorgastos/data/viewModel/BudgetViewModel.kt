@@ -1,19 +1,28 @@
-package jesusernesto.lopezibarra.gestorgastos.screens.budget
+package jesusernesto.lopezibarra.gestorgastos.data.viewModel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import jesusernesto.lopezibarra.gestorgastos.data.AppDatabase
 import jesusernesto.lopezibarra.gestorgastos.data.SessionManager
-import jesusernesto.lopezibarra.gestorgastos.data.entity.*
+import jesusernesto.lopezibarra.gestorgastos.data.entity.CategoriaEntity
+import jesusernesto.lopezibarra.gestorgastos.data.entity.DetallePresupuestoEntity
+import jesusernesto.lopezibarra.gestorgastos.data.entity.GastoFijoEntity
 import jesusernesto.lopezibarra.gestorgastos.data.repository.PresupuestoConDetalles
 import jesusernesto.lopezibarra.gestorgastos.data.repository.PresupuestoRepository
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.util.*
+import java.util.Calendar
 
 class BudgetViewModel(application: Application) : AndroidViewModel(application) {
-    private val db = AppDatabase.getInstance(application)
+    private val db = AppDatabase.Companion.getInstance(application)
     private val repository: PresupuestoRepository by lazy {
         PresupuestoRepository(
             db.presupuestoDao(),
@@ -27,9 +36,12 @@ class BudgetViewModel(application: Application) : AndroidViewModel(application) 
     private val _anioActual = MutableStateFlow(Calendar.getInstance().get(Calendar.YEAR))
 
     val categorias: StateFlow<List<CategoriaEntity>> = repository.obtenerCategorias()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        .stateIn(viewModelScope, SharingStarted.Companion.WhileSubscribed(5000), emptyList())
 
-    val presupuestoActual: StateFlow<PresupuestoConDetalles?> = combine(_mesActual, _anioActual) { mes, anio ->
+    val presupuestoActual: StateFlow<PresupuestoConDetalles?> = combine(
+        _mesActual,
+        _anioActual
+    ) { mes, anio ->
         Pair(mes, anio)
     }.flatMapLatest { (mes, anio) ->
         val userId = SessionManager.usuarioActual?.idUsuario ?: -1
@@ -38,10 +50,14 @@ class BudgetViewModel(application: Application) : AndroidViewModel(application) 
         } else {
             flowOf(null)
         }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    }.stateIn(viewModelScope, SharingStarted.Companion.WhileSubscribed(5000), null)
 
     // Actualización reactiva en BudgetViewModel.kt
-    val gastosPorCategoria: StateFlow<Map<Int, Double>> = combine(_mesActual, _anioActual, categorias) { mes, anio, cats ->
+    val gastosPorCategoria: StateFlow<Map<Int, Double>> = combine(
+        _mesActual,
+        _anioActual,
+        categorias
+    ) { mes, anio, cats ->
         Triple(mes, anio, cats)
     }.flatMapLatest { (mes, anio, cats) ->
         val userId = SessionManager.usuarioActual?.idUsuario ?: return@flatMapLatest flowOf(emptyMap())
@@ -54,7 +70,7 @@ class BudgetViewModel(application: Application) : AndroidViewModel(application) 
 
         if (flows.isEmpty()) flowOf(emptyMap())
         else combine(flows) { it.toMap() }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+    }.stateIn(viewModelScope, SharingStarted.Companion.WhileSubscribed(5000), emptyMap())
 
     private val _gastosFijos = MutableStateFlow<List<GastoFijoEntity>>(emptyList())
     val gastosFijos: StateFlow<List<GastoFijoEntity>> = _gastosFijos

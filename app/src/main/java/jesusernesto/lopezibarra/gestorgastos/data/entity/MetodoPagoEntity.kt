@@ -21,8 +21,8 @@ import jesusernesto.lopezibarra.gestorgastos.data.enums.TipoMetodoPago
 data class MetodoPagoEntity(
     @PrimaryKey(autoGenerate = true)
     val idMetodoPago: Int = 0,
-    val idUsuario: Int,
-    val tipo: TipoMetodoPago,
+    val idUsuario: Int? = null,
+    val tipo: TipoMetodoPago? = null,
     val ultimosDigitos: Int? = null,
     val nombre: String? = null
 )
