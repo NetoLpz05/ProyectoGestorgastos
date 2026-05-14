@@ -22,6 +22,9 @@ interface UsuarioDao {
     @Update
     suspend fun actualizar(usuario: UsuarioEntity)
 
+    @Query("UPDATE usuario SET contrasena = :contrasena WHERE email = :email")
+    suspend fun actualizarContrasena(email: String, contrasena: String)
+
     @Query("UPDATE usuario SET tema = :tema WHERE idUsuario = :id")
     suspend fun actualizarTema(id: Int, tema: String)
 

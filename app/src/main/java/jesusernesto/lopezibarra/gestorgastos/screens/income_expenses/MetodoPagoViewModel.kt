@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlin.collections.emptyList
 
 class MetodoPagoViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: MetodoPagoRepository by lazy {
@@ -25,9 +26,12 @@ class MetodoPagoViewModel(application: Application) : AndroidViewModel(applicati
     }?.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    ) ?: flowOf(emptyList()).stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
+        initialValue = emptyList<MetodoPagoEntity>()
+    ) ?: flowOf(emptyList<MetodoPagoEntity>()).stateIn(
+        viewModelScope,
+        SharingStarted.Eagerly,
+        emptyList<MetodoPagoEntity>()
+    )
     fun guardarTarjeta(
         nombre: String,
         numeroCompleto: String,
