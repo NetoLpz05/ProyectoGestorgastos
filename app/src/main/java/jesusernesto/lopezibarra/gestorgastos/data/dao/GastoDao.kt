@@ -12,6 +12,9 @@ interface GastoDao {
     @Query("SELECT * FROM gasto WHERE idUsuario = :idUsuario")
     fun obtenerPorUsuario(idUsuario: Int): Flow<List<GastoEntity>>
 
+    @Query("SELECT * FROM gasto WHERE idUsuario = :idUsuario AND fecha BETWEEN :desde AND :hasta")
+    fun obtenerPorRango(idUsuario: Int, desde: Long, hasta: Long): Flow<List<GastoEntity>>
+
     @Query("""
         SELECT SUM(monto) FROM gasto 
         WHERE idUsuario = :idUsuario AND idCategoria = :idCategoria 
