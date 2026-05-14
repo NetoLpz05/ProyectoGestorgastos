@@ -15,6 +15,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import jesusernesto.lopezibarra.gestorgastos.screens.MainScreen
+import jesusernesto.lopezibarra.gestorgastos.screens.user.ForgotPasswordScreen
 import jesusernesto.lopezibarra.gestorgastos.screens.user.LoginScreen
 import jesusernesto.lopezibarra.gestorgastos.screens.user.RegisterScreen
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.GestorgastosTheme
@@ -38,7 +39,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private enum class Screen { LOGIN, REGISTER, MAIN }
+private enum class Screen { LOGIN, REGISTER, MAIN, FORGOT_PASSWORD }
 
 @Composable
 private fun AppRoot(
@@ -51,7 +52,7 @@ private fun AppRoot(
         Screen.LOGIN -> LoginScreen(
             onLoginClick = { pantallaActual = Screen.MAIN },
             onRegisterClick = { pantallaActual = Screen.REGISTER },
-            onForgotPasswordClick = {}
+            onForgotPasswordClick = { pantallaActual = Screen.FORGOT_PASSWORD }
         )
 
         Screen.REGISTER -> RegisterScreen(
@@ -63,6 +64,10 @@ private fun AppRoot(
             onLogout = { pantallaActual = Screen.LOGIN },
             isDarkMode = isDarkMode,
             onDarkModeChange = onDarkModeChange
+        )
+
+        Screen.FORGOT_PASSWORD -> ForgotPasswordScreen(
+            onBackToLogin = { pantallaActual = Screen.LOGIN }
         )
     }
 }
