@@ -20,12 +20,25 @@ import androidx.compose.ui.unit.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
 
+@Composable
+fun AddCardScreen(onBack: () -> Unit,
+    onSave: () -> Unit,
+    viewModel: MetodoPagoViewModel = viewModel()) {
+    AddCardContent(onBack = onBack,
+        onSaveClick = { nombre, numero, esCredito ->
+            viewModel.guardarTarjeta(
+                nombre = nombre,
+                numeroCompleto = numero,
+                esCredito = esCredito,
+                onSuccess = onSave)
+        })
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddCardScreen(
+fun AddCardContent(
     onBack: () -> Unit,
-    onSave: () -> Unit,
-    viewModel: MetodoPagoViewModel = viewModel()
+    onSaveClick: (String, String, Boolean) -> Unit
 ) {
     var nombreTarjeta by remember { mutableStateOf("") }
     var numeroTarjeta by remember { mutableStateOf("") }
@@ -187,11 +200,10 @@ fun AddCardScreen(
             Button(
                 onClick = {
                     if (nombreTarjeta.isNotBlank() && numeroTarjeta.replace(" ", "").length >= 4) {
-                        viewModel.guardarTarjeta(
-                            nombre = nombreTarjeta,
-                            numeroCompleto = numeroTarjeta.replace(" ", ""),
-                            esCredito = esCredito,
-                            onSuccess = onSave
+                        onSaveClick(
+                            nombreTarjeta,
+                            numeroTarjeta.replace(" ", ""),
+                            esCredito
                         )
                     }
                 },
@@ -258,8 +270,8 @@ private fun cardTextFieldColors() = OutlinedTextFieldDefaults.colors(
     unfocusedContainerColor = Color.White, focusedContainerColor = Color.White
 )
 
-@Preview(showBackground = true,)
+@Preview(showBackground = true)
 @Composable
 fun AddCardScreenPreview() {
-    AddCardScreen(onBack = {}, onSave = {})
+    AddCardContent(onBack = {}, onSaveClick = { _, _, _ -> })
 }

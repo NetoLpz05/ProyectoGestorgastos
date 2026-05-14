@@ -89,8 +89,8 @@ abstract class AppDatabase : RoomDatabase() {
                 }
 
                 if (metodoPagoDao.contarMP() == 0) {
-                    metodoPagoDao.insert(MetodoPagoEntity(tipo = TipoMetodoPago.EFECTIVO, nombre = "Efectivo"))
-                    metodoPagoDao.insert(MetodoPagoEntity(tipo = TipoMetodoPago.TARJETA_DEBITO, nombre = "Tarjeta de Prueba"))
+                    metodoPagoDao.insertar(MetodoPagoEntity(tipo = TipoMetodoPago.EFECTIVO, nombre = "Efectivo"))
+                    metodoPagoDao.insertar(MetodoPagoEntity(tipo = TipoMetodoPago.TARJETA_DEBITO, nombre = "Tarjeta de Prueba"))
                 }
             }
         }

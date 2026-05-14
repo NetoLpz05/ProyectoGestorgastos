@@ -6,10 +6,10 @@ import kotlinx.coroutines.flow.Flow
 
 class MetodoPagoRepository(private val dao: MetodoPagoDao) {
     suspend fun guardarMetodoPago(metodoPago: MetodoPagoEntity): Long {
-        return dao.insert(metodoPago)
+        return dao.insertar(metodoPago)
     }
 
     fun obtenerMetodosPagoUsuario(idUsuario: Int): Flow<List<MetodoPagoEntity>> {
-        return dao.obtenerMetodosPagoUsuario(idUsuario)
+        return dao.obtenerPorUsuario(idUsuario)
     }
 }
