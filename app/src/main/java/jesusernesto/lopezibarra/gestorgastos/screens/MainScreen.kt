@@ -7,13 +7,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.Note
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.outlined.Note
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,11 +24,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -36,7 +37,8 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import jesusernesto.lopezibarra.gestorgastos.data.SessionManager
-import jesusernesto.lopezibarra.gestorgastos.dummy.DummyData
+import jesusernesto.lopezibarra.gestorgastos.data.viewModel.MovimientoUI
+import jesusernesto.lopezibarra.gestorgastos.data.viewModel.MovimientoViewModel
 import jesusernesto.lopezibarra.gestorgastos.dummy.Transaccion
 import jesusernesto.lopezibarra.gestorgastos.screens.budget.BudgetScreen
 import jesusernesto.lopezibarra.gestorgastos.screens.components.BottomNavBar
@@ -52,21 +54,21 @@ import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-private val displayFormat = SimpleDateFormat("dd MMM yyyy", Locale("es", "MX"))
+private val displayFormat = SimpleDateFormat("dd MMM yyyy", Locale.forLanguageTag("es-MX"))
 private fun Long.toDisplayDate(): String = displayFormat.format(Date(this))
 
-private fun todayUtcMillis(): Long {
-    val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+private fun startOfMonthMillis(): Long {
+    val cal = Calendar.getInstance()
+    cal.set(Calendar.DAY_OF_MONTH, 1)
     cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0)
     cal.set(Calendar.SECOND, 0);      cal.set(Calendar.MILLISECOND, 0)
     return cal.timeInMillis
 }
 
-private fun firstDayMonthUtcMillis(): Long {
-    val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
-    cal.set(Calendar.DAY_OF_MONTH, 1)
-    cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0)
-    cal.set(Calendar.SECOND, 0);      cal.set(Calendar.MILLISECOND, 0)
+private fun endOfDayMillis(): Long {
+    val cal = Calendar.getInstance()
+    cal.set(Calendar.HOUR_OF_DAY, 23); cal.set(Calendar.MINUTE, 59)
+    cal.set(Calendar.SECOND, 59);      cal.set(Calendar.MILLISECOND, 999)
     return cal.timeInMillis
 }
 
@@ -114,11 +116,11 @@ fun MainScreen(
         ) {
             composable("Inicio") {
                 HomeScreen(
-                    onTransaccionClick = { id ->
-                        navController.navigate("DetalleMovimiento/$id")
+                    onTransaccionClick = { tipo, id ->
+                        navController.navigate("DetalleMovimiento/$tipo/$id")
                     },
-                    onEditTransaccion = { id ->
-                        navController.navigate("EditarGasto/$id")
+                    onEditTransaccion = { tipo, id ->
+                        navController.navigate("EditarGasto/$tipo/$id")
                     },
                     onBalanceClick = {
                         navController.navigate("Graficas")
@@ -169,17 +171,10 @@ fun MainScreen(
                 AlertasScreen(onBack = { navController.popBackStack() })
             }
 
-            composable("DetalleMovimiento/{id}") { backStackEntry ->
-                val id = backStackEntry.arguments?.getString("id")?.toIntOrNull()
-                val transaccion = DummyData.transacciones.find { it.id == id }
-                if (transaccion != null) {
-                    DetalleMovimientoScreen(
-                        transaccion = transaccion,
-                        onBack = { navController.popBackStack() }
-                    )
-                }
+            composable("DetalleMovimiento/{tipo}/{id}") {
+                // TODO: Implement real Detail Screen
             }
-            composable("EditarGasto/{id}") {
+            composable("EditarGasto/{tipo}/{id}") {
                 EditExpenseScreen(
                     onBack = { navController.popBackStack() },
                     onSave = { navController.popBackStack() },
@@ -196,39 +191,36 @@ fun MainScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    onTransaccionClick: (Int) -> Unit = {},
-    onEditTransaccion: (Int) -> Unit = {},
-    onBalanceClick: () -> Unit = {}
+    onTransaccionClick: (String, Int) -> Unit = { _, _ -> },
+    onEditTransaccion: (String, Int) -> Unit = { _, _ -> },
+    onBalanceClick: () -> Unit = {},
+    movimientoViewModel: MovimientoViewModel = viewModel()
 ) {
-    val categoriasFiltro = listOf("Todos", "Hogar", "Comida", "Transporte", "Compras")
+    val categoriasFiltro = listOf("Todos", "Vivienda", "Comida", "Transporte", "Compras", "Otros")
     var categoriaSeleccionada by remember { mutableStateOf("Todos") }
     var busqueda by remember { mutableStateOf("") }
-    var fechaDesde by remember { mutableStateOf(firstDayMonthUtcMillis()) }
-    var fechaHasta by remember { mutableStateOf(todayUtcMillis()) }
+    var fechaDesde by remember { mutableLongStateOf(startOfMonthMillis()) }
+    var fechaHasta by remember { mutableLongStateOf(endOfDayMillis()) }
     var pickerAbierto by remember { mutableStateOf<String?>(null) }
 
     val usuario = SessionManager.usuarioActual
+    val movimientos by movimientoViewModel.todosLosMovimientos.collectAsState(initial = emptyList())
 
-    val stateDesde = rememberDatePickerState(
-        initialSelectedDateMillis = fechaDesde,
-        selectableDates = object : SelectableDates {
-            override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis <= fechaHasta
-        }
-    )
-    val stateHasta = rememberDatePickerState(
-        initialSelectedDateMillis = fechaHasta,
-        selectableDates = object : SelectableDates {
-            override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis >= fechaDesde
-        }
-    )
+    val stateDesde = rememberDatePickerState(initialSelectedDateMillis = fechaDesde)
+    val stateHasta = rememberDatePickerState(initialSelectedDateMillis = fechaHasta)
 
-    val transaccionesFiltradas = DummyData.transacciones.filter { t ->
+    val movimientosFiltrados = movimientos.filter { m ->
         val matchCategoria = categoriaSeleccionada == "Todos" ||
-                t.category.equals(categoriaSeleccionada, ignoreCase = true)
+                m.categoriaNombre.contains(categoriaSeleccionada, ignoreCase = true)
         val matchBusqueda = busqueda.isBlank() ||
-                t.title.contains(busqueda, ignoreCase = true)
-        matchCategoria && matchBusqueda
+                m.descripcion.contains(busqueda, ignoreCase = true)
+        val matchFecha = m.fecha in fechaDesde..fechaHasta
+        matchCategoria && matchBusqueda && matchFecha
     }
+
+    val totalIngresos = movimientosFiltrados.filterIsInstance<MovimientoUI.Ingreso>().sumOf { it.monto }
+    val totalGastos = movimientosFiltrados.filterIsInstance<MovimientoUI.Gasto>().sumOf { it.monto }
+    val balanceActual = totalIngresos - totalGastos
 
     if (pickerAbierto == "desde") {
         DatePickerDialog(
@@ -258,7 +250,14 @@ fun HomeScreen(
             onDismissRequest = { pickerAbierto = null },
             confirmButton = {
                 TextButton(onClick = {
-                    stateHasta.selectedDateMillis?.let { fechaHasta = it }
+                    stateHasta.selectedDateMillis?.let { 
+                        // Set to end of the day chosen
+                        val cal = Calendar.getInstance()
+                        cal.timeInMillis = it
+                        cal.set(Calendar.HOUR_OF_DAY, 23); cal.set(Calendar.MINUTE, 59)
+                        cal.set(Calendar.SECOND, 59); cal.set(Calendar.MILLISECOND, 999)
+                        fechaHasta = cal.timeInMillis 
+                    }
                     pickerAbierto = null
                 }) { Text("Aceptar", color = Purple) }
             },
@@ -314,7 +313,8 @@ fun HomeScreen(
             }
             Spacer(modifier = Modifier.width(10.dp))
             Column {
-                Text(text = DummyData.mesActual, fontSize = 20.sp, color = TextGray)
+                val mesAnio = SimpleDateFormat("MMMM yyyy", Locale.forLanguageTag("es-MX")).format(Date())
+                Text(text = mesAnio.replaceFirstChar { it.uppercase() }, fontSize = 20.sp, color = TextGray)
                 Text(
                     text = if (usuario != null) "Hola, ${usuario.nombre}" else "Mis finanzas",
                     fontSize = 18.sp,
@@ -331,9 +331,9 @@ fun HomeScreen(
 
             item {
                 BalanceGraphCard(
-                    balance = DummyData.balanceMensual,
-                    ingresos = DummyData.ingresoMensual,
-                    gastos = DummyData.gastoMensual,
+                    balance = balanceActual,
+                    ingresos = totalIngresos,
+                    gastos = totalGastos,
                     onClick = onBalanceClick
                 )
             }
@@ -439,61 +439,87 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            if (transaccionesFiltradas.isEmpty()) {
+            if (movimientosFiltrados.isEmpty()) {
                 item {
                     Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
                         Text("Sin movimientos", color = TextGray, fontSize = 14.sp)
                     }
                 }
             } else {
-                items(transaccionesFiltradas) { t ->
-                    TransaccionRow(
-                        transaccion = t,
-                        onClick = { onTransaccionClick(t.id) },
-                        onEditClick = { onEditTransaccion(t.id) }
+                items(movimientosFiltrados) { m ->
+                    MovimientoRealRow(
+                        movimiento = m,
+                        onClick = {
+                            val tipo = if (m is MovimientoUI.Gasto) "gasto" else "ingreso"
+                            onTransaccionClick(tipo, m.id)
+                        },
+                        onEditClick = {
+                            val tipo = if (m is MovimientoUI.Gasto) "gasto" else "ingreso"
+                            onEditTransaccion(tipo, m.id)
+                        }
                     )
-                    Divider(color = PurpleLight.copy(alpha = 0.5f), modifier = Modifier.padding(horizontal = 16.dp))
+                    HorizontalDivider(color = PurpleLight.copy(alpha = 0.5f), modifier = Modifier.padding(horizontal = 16.dp))
                 }
             }
+        }
+    }
+}
 
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Gastos por categoria", fontSize = 18.sp, fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(horizontal = 16.dp)
+@Composable
+fun MovimientoRealRow(
+    movimiento: MovimientoUI,
+    onClick: () -> Unit,
+    onEditClick: () -> Unit = {}
+) {
+    var menuAbierto by remember { mutableStateOf(false) }
+    val isIngreso = movimiento is MovimientoUI.Ingreso
+    
+    val partesCat = movimiento.categoriaNombre.split(" ", limit = 2)
+    val emoji = partesCat.firstOrNull() ?: if (isIngreso) "💰" else "📦"
+    val nombreCat = partesCat.getOrNull(1) ?: movimiento.categoriaNombre
+
+    Row(
+        modifier = Modifier.fillMaxWidth().clickable { onClick() }.padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier.size(42.dp).clip(RoundedCornerShape(12.dp)).background(PurpleLight),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = emoji, fontSize = 20.sp)
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = movimiento.descripcion.ifBlank { nombreCat }, 
+                fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(text = "$nombreCat - ${movimiento.fecha.toDisplayDate()}", fontSize = 12.sp, color = TextGray)
+        }
+        Text(
+            text = "${if (isIngreso) "+ " else "- "}$${"%,.2f".format(movimiento.monto)}",
+            fontSize = 14.sp, fontWeight = FontWeight.Bold, color = if (isIngreso) GreenIncome else RedExpense
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Box {
+            IconButton(onClick = { menuAbierto = true }, modifier = Modifier.size(24.dp)) {
+                Icon(Icons.Outlined.MoreVert, contentDescription = "Opciones", tint = TextGray, modifier = Modifier.size(18.dp))
+            }
+            DropdownMenu(
+                expanded = menuAbierto,
+                onDismissRequest = { menuAbierto = false }
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Editar Movimiento") },
+                    onClick = {
+                        menuAbierto = false
+                        onEditClick()
+                    },
+                    leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null, modifier = Modifier.size(20.dp)) }
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(MaterialTheme.colorScheme.surface)
-                ) {
-                    Column {
-                        DummyData.gastosPorCategoria.forEachIndexed { index, gasto ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(text = gasto.iconEmoji, fontSize = 24.sp)
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = gasto.name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f)
-                                )
-                                Text(
-                                    text = "$${"%,.2f".format(gasto.amount)}", fontSize = 15.sp,
-                                    fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                            if (index < DummyData.gastosPorCategoria.lastIndex) {
-                                Divider(color = PurpleLight.copy(alpha = 0.5f), modifier = Modifier.padding(horizontal = 16.dp))
-                            }
-                        }
-                    }
-                }
             }
         }
     }
@@ -634,58 +660,6 @@ fun WeeklyBarGraph(data: List<Pair<Float, Float>>) {
 }
 
 @Composable
-fun TransaccionRow(
-    transaccion: Transaccion,
-    onClick: () -> Unit,
-    onEditClick: () -> Unit = {}
-) {
-    var menuAbierto by remember { mutableStateOf(false) }
-    val isIngreso = transaccion.amount > 0
-    Row(
-        modifier = Modifier.fillMaxWidth().clickable { onClick() }.padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier.size(42.dp).clip(RoundedCornerShape(12.dp)).background(PurpleLight),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(text = transaccion.iconEmoji, fontSize = 20.sp)
-        }
-        Spacer(modifier = Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = transaccion.title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(text = "${transaccion.category} - ${transaccion.date}", fontSize = 12.sp, color = TextGray)
-        }
-        Text(
-            text = "${if (isIngreso) "+ " else "- "}$${"%,.2f".format(Math.abs(transaccion.amount))}",
-            fontSize = 14.sp, fontWeight = FontWeight.Bold, color = if (isIngreso) GreenIncome else RedExpense
-        )
-        Spacer(modifier = Modifier.width(6.dp))
-        Box {
-            IconButton(onClick = { menuAbierto = true }, modifier = Modifier.size(24.dp)) {
-                Icon(Icons.Outlined.MoreVert, contentDescription = "Opciones", tint = TextGray, modifier = Modifier.size(18.dp))
-            }
-            DropdownMenu(
-                expanded = menuAbierto,
-                onDismissRequest = { menuAbierto = false }
-            ) {
-                DropdownMenuItem(
-                    text = { Text("Editar Gasto") },
-                    onClick = {
-                        menuAbierto = false
-                        onEditClick()
-                    },
-                    leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null, modifier = Modifier.size(20.dp)) }
-                )
-            }
-        }
-    }
-}
-
-@Composable
 fun DetalleMovimientoScreen(transaccion: Transaccion, onBack: () -> Unit) {
     val isIngreso = transaccion.amount > 0
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
@@ -694,7 +668,7 @@ fun DetalleMovimientoScreen(transaccion: Transaccion, onBack: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            IconButton(onClick = onBack) { Icon(Icons.Outlined.ArrowBack, contentDescription = null, tint = Purple) }
+            IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = null, tint = Purple) }
             Text("Detalles", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface)
             Row {
                 IconButton(onClick = {}) { Icon(Icons.Outlined.Edit, contentDescription = null, tint = TextGray) }
@@ -724,8 +698,8 @@ fun DetalleMovimientoScreen(transaccion: Transaccion, onBack: () -> Unit) {
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 DetalleItem("Fecha", transaccion.date, Icons.Outlined.CalendarMonth)
-                Divider(modifier = Modifier.padding(vertical = 12.dp), color = PurpleLight.copy(alpha = 0.3f))
-                DetalleItem("Método de pago", transaccion.paymentMethod, Icons.Outlined.Note)
+                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = PurpleLight.copy(alpha = 0.3f))
+                DetalleItem("Método de pago", transaccion.paymentMethod, Icons.AutoMirrored.Outlined.Note)
             }
         }
     }
