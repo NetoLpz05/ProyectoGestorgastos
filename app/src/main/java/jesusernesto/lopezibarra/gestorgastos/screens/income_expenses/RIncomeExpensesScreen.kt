@@ -28,6 +28,7 @@ import jesusernesto.lopezibarra.gestorgastos.data.entity.CategoriaEntity
 import jesusernesto.lopezibarra.gestorgastos.data.entity.MetodoPagoEntity
 import jesusernesto.lopezibarra.gestorgastos.data.enums.TipoMetodoPago
 import jesusernesto.lopezibarra.gestorgastos.data.viewModel.MovimientoViewModel
+import jesusernesto.lopezibarra.gestorgastos.dummy.DummyData
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -487,6 +488,58 @@ fun FormaPagoCard(
     }
 }
 
+@Composable
+fun FormaPagoCard(selectedIndex: Int, onSelect: (Int) -> Unit, onAddCard: () -> Unit = {}) {
+    Column(
+        modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).padding(horizontal = 20.dp).padding(bottom = 32.dp)) {
+        Box(modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 16.dp).size(width = 40.dp, height = 4.dp)
+            .clip(RoundedCornerShape(2.dp)).background(PurpleLight))
+
+        Text(text = "Selecciona el método", fontWeight = FontWeight.Bold, fontSize = 18.sp,
+            color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp))
+
+        DummyData.formasPago.forEachIndexed { index, (emoji, label, detail) ->
+            val isSelected = selectedIndex == index
+            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)
+                .clip(RoundedCornerShape(12.dp)).background(if (isSelected) Purple else PurpleLight.copy(alpha = 0.2f))
+                .clickable { onSelect(index) }.padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp))
+                    .background(
+                        if (isSelected) Color.White.copy(alpha = 0.2f)
+                        else Color.White
+                    ), contentAlignment = Alignment.Center) {
+                    Text(emoji, fontSize = 20.sp)
+                }
+
+                Spacer(modifier = Modifier.width(14.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = label, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface)
+
+                    Text(text = detail, fontSize = 12.sp, color = if (isSelected) Color.White.copy(alpha = 0.7f) else TextGray)
+                }
+
+                if (isSelected) {
+                    Icon(imageVector = Icons.Outlined.CheckCircle, contentDescription = "Seleccionado", tint = Color.White, modifier = Modifier.size(22.dp))
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(modifier = Modifier.fillMaxWidth().height(46.dp).clip(RoundedCornerShape(10.dp))
+            .border(2.dp, Purple, RoundedCornerShape(10.dp)).clickable { onAddCard() }.padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+            Icon(imageVector = Icons.Outlined.AddCard, contentDescription = null,
+                tint = Purple, modifier = Modifier.size(20.dp))
+
+            Spacer(modifier = Modifier.width(10.dp))
+
+            Text(text = "Añadir tarjeta crédito / débito", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Purple)
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun NewMovementScreenPreview() {
@@ -508,6 +561,16 @@ fun NewMovementScreenPreview() {
             onGuardarMovimiento = { _, _, _, _, _, _, _, _ -> },
             onResetSaveSuccess = {}
         )
+    }
+}
+
+@Preview(showBackground = true,)
+@Composable
+fun FormaPagoCardPreview() {
+    GestorGastosTheme {
+        var selectedIndex by remember { mutableStateOf(0) }
+
+        FormaPagoCard(selectedIndex = selectedIndex, onSelect = { selectedIndex = it })
     }
 }
 
