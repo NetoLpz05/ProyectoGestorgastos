@@ -130,13 +130,6 @@ fun EditExpenseScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Text("Cambiar foto de recibo", color = TextGray, fontSize = 14.sp)
                     }
-
-                    Box(
-                        modifier = Modifier.size(40.dp).clip(RoundedCornerShape(4.dp)).background(Color.White).border(1.dp, Color.LightGray, RoundedCornerShape(4.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("🎬", fontSize = 20.sp)
-                    }
                 }
             }
 

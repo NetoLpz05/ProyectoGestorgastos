@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -85,7 +86,7 @@ fun NewMovementContent(
     var amount by remember { mutableStateOf("0.00") }
     var description by remember { mutableStateOf("") }
     var date by remember { mutableStateOf(SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())) }
-    var selectedCategory by remember { mutableStateOf(0) }
+    var selectedCategory by remember { mutableStateOf("Entretenimiento") }
     var selectedPaymentIndex by remember { mutableStateOf(0) }
     var showDatePicker by remember { mutableStateOf(false) }
     var isEditingAmount by remember { mutableStateOf(false) }
@@ -237,11 +238,17 @@ fun NewMovementContent(
             }
 
             SectionLabel("Categoría")
-            CategoryGrid(
-                categories = categorias,
-                selectedIndex = selectedCategory,
-                onItemClick = { selectedCategory = it }
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                CategoryIcon("Vivienda", Icons.Outlined.Home, selectedCategory == "Vivienda") { selectedCategory = "Vivienda" }
+                CategoryIcon("Entretenimiento", Icons.Outlined.Tv, selectedCategory == "Entretenimiento") { selectedCategory = "Entretenimiento" }
+                CategoryIcon("Transporte", Icons.Outlined.DirectionsCar, selectedCategory == "Transporte") { selectedCategory = "Transporte" }
+                CategoryIcon("Alimentación", Icons.Outlined.Restaurant, selectedCategory == "Alimentación") { selectedCategory = "Alimentación" }
+                CategoryIcon("Salud", Icons.Outlined.FavoriteBorder, selectedCategory == "Salud") { selectedCategory = "Salud" }
+                CategoryIcon("Otros", Icons.Outlined.GridView, selectedCategory == "Otros") { selectedCategory = "Otros" }
+            }
 
             SectionLabel("Método de pago")
             selectedMetodo?.let { metodo ->
@@ -282,7 +289,7 @@ fun NewMovementContent(
                 Icon(imageVector = Icons.Outlined.CameraAlt, contentDescription = null, tint = TextGray, modifier = Modifier.size(24.dp))
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(text = if (photoUri == null) "Adjuntar foto del recibo" else "Foto adjuntada", color = TextGray, fontSize = 14.sp)
-                
+
                 if (photoUri != null) {
                     Spacer(modifier = Modifier.weight(1f))
                     Icon(Icons.Outlined.CheckCircle, contentDescription = null, tint = GreenIncome)
@@ -293,17 +300,18 @@ fun NewMovementContent(
 
             Button(
                 onClick = {
-                    val catId = categorias.getOrNull(selectedCategory)?.idCategoria ?: 0
+                    val categoriaEncontrada = categorias.find { it.nombre.contains(selectedCategory, ignoreCase = true) }
+                    val catId = categoriaEncontrada?.idCategoria ?: 0
                     val mpId = selectedMetodo?.idMetodoPago ?: 0
-                    onGuardarMovimiento(
-                        isGasto, amount.toFloatOrNull() ?: 0f, description, date, catId, mpId, location, photoUri?.toString()
-                    )
+
+                    onGuardarMovimiento(isGasto, amount.toFloatOrNull() ?: 0f,
+                        description, date, catId, mpId, location, photoUri?.toString())
                 },
                 modifier = Modifier.fillMaxWidth().height(54.dp),
-                shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = Purple)) {
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Purple)) {
                 Text("Guardar Movimiento", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.White)
             }
-
             Spacer(modifier = Modifier.height(40.dp))
         }
 
@@ -356,42 +364,17 @@ private fun SectionLabel(text: String) {
 }
 
 @Composable
-private fun CategoryItem(emoji: String, label: String, selected: Boolean, onClick: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable(onClick = onClick)) {
+private fun CategoryIcon(label: String, icon: ImageVector, isSelected: Boolean, onClick: () -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onClick() }) {
         Box(
             modifier = Modifier.size(50.dp).clip(RoundedCornerShape(12.dp))
-                .border(2.dp, if (selected) Purple else Color.Transparent, RoundedCornerShape(12.dp))
-                .background(if (selected) Color.White else Color.Transparent),
+                .border(2.dp, if (isSelected) Purple else Color.Transparent, RoundedCornerShape(12.dp))
+                .background(if (isSelected) Color.White else Color.Transparent),
             contentAlignment = Alignment.Center
         ) {
-            Text(emoji, fontSize = 24.sp)
+            Icon(icon, contentDescription = null, tint = if (isSelected) Purple else TextGray.copy(alpha = 0.6f), modifier = Modifier.size(32.dp))
         }
-        Text(label, fontSize = 11.sp, color = if (selected) Purple else TextGray, modifier = Modifier.padding(top = 4.dp))
-    }
-}
-
-@Composable
-fun CategoryGrid(
-    categories: List<CategoriaEntity>,
-    selectedIndex: Int,
-    onItemClick: (Int) -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        categories.forEachIndexed { index, item ->
-            val partes = item.nombre.split(" ", limit = 2)
-            val emoji = partes.firstOrNull() ?: "📦"
-            val texto = partes.getOrNull(1) ?: item.nombre
-
-            CategoryItem(
-                emoji = emoji,
-                label = texto,
-                selected = index == selectedIndex,
-                onClick = { onItemClick(index) }
-            )
-        }
+        Text(label, fontSize = 11.sp, color = if (isSelected) Purple else TextGray)
     }
 }
 
@@ -488,57 +471,7 @@ fun FormaPagoCard(
     }
 }
 
-@Composable
-fun FormaPagoCard(selectedIndex: Int, onSelect: (Int) -> Unit, onAddCard: () -> Unit = {}) {
-    Column(
-        modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).padding(horizontal = 20.dp).padding(bottom = 32.dp)) {
-        Box(modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 16.dp).size(width = 40.dp, height = 4.dp)
-            .clip(RoundedCornerShape(2.dp)).background(PurpleLight))
 
-        Text(text = "Selecciona el método", fontWeight = FontWeight.Bold, fontSize = 18.sp,
-            color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp))
-
-        DummyData.formasPago.forEachIndexed { index, (emoji, label, detail) ->
-            val isSelected = selectedIndex == index
-            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)
-                .clip(RoundedCornerShape(12.dp)).background(if (isSelected) Purple else PurpleLight.copy(alpha = 0.2f))
-                .clickable { onSelect(index) }.padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
-                Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp))
-                    .background(
-                        if (isSelected) Color.White.copy(alpha = 0.2f)
-                        else Color.White
-                    ), contentAlignment = Alignment.Center) {
-                    Text(emoji, fontSize = 20.sp)
-                }
-
-                Spacer(modifier = Modifier.width(14.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(text = label, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface)
-
-                    Text(text = detail, fontSize = 12.sp, color = if (isSelected) Color.White.copy(alpha = 0.7f) else TextGray)
-                }
-
-                if (isSelected) {
-                    Icon(imageVector = Icons.Outlined.CheckCircle, contentDescription = "Seleccionado", tint = Color.White, modifier = Modifier.size(22.dp))
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Row(modifier = Modifier.fillMaxWidth().height(46.dp).clip(RoundedCornerShape(10.dp))
-            .border(2.dp, Purple, RoundedCornerShape(10.dp)).clickable { onAddCard() }.padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-            Icon(imageVector = Icons.Outlined.AddCard, contentDescription = null,
-                tint = Purple, modifier = Modifier.size(20.dp))
-
-            Spacer(modifier = Modifier.width(10.dp))
-
-            Text(text = "Añadir tarjeta crédito / débito", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Purple)
-        }
-    }
-}
 
 @Preview(showBackground = true)
 @Composable
@@ -564,13 +497,12 @@ fun NewMovementScreenPreview() {
     }
 }
 
-@Preview(showBackground = true,)
+@Preview(showBackground = true)
 @Composable
 fun FormaPagoCardPreview() {
     GestorGastosTheme {
         var selectedIndex by remember { mutableStateOf(0) }
-
-        FormaPagoCard(selectedIndex = selectedIndex, onSelect = { selectedIndex = it })
+        FormaPagoCard(metodos = emptyList(), selectedIndex = selectedIndex, onSelect = { selectedIndex = it })
     }
 }
 
