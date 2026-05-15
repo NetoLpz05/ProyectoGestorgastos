@@ -7,16 +7,14 @@ import jesusernesto.lopezibarra.gestorgastos.data.AppDatabase
 import jesusernesto.lopezibarra.gestorgastos.data.SessionManager
 import jesusernesto.lopezibarra.gestorgastos.data.entity.MetodoPagoEntity
 import jesusernesto.lopezibarra.gestorgastos.data.enums.TipoMetodoPago
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlin.collections.emptyList
 
 class MetodoPagoViewModel(application: Application) : AndroidViewModel(application) {
     private val dao = AppDatabase.getInstance(application).metodoPagoDao()
     private val idUsuario = SessionManager.usuarioActual?.idUsuario ?: 0
-    
+
     val metodosPago: StateFlow<List<MetodoPagoEntity>> = dao.obtenerPorUsuario(idUsuario)
         .stateIn(
             scope = viewModelScope,

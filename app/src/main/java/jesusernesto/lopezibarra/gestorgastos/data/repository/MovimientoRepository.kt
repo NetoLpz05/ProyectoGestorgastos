@@ -15,6 +15,6 @@ class MovimientoRepository(private val dao: MovimientoDao) {
         dao.insertIngreso(ingreso)
     }
 
-    val allGastos: Flow<List<GastoEntity>> = dao.getAllGastos()
-    val allIngresos: Flow<List<IngresoEntity>> = dao.getAllIngresos()
+    fun obtenerGastos(): Flow<List<GastoEntity>> = dao.getAllGastos()
+    fun obtenerIngresos(): Flow<List<IngresoEntity>> = dao.getAllIngresos()
 }

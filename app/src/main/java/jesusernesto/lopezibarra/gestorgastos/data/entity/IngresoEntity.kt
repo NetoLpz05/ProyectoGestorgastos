@@ -13,14 +13,32 @@ import androidx.room.PrimaryKey
             parentColumns = ["idUsuario"],
             childColumns = ["idUsuario"],
             onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = CategoriaEntity::class,
+            parentColumns = ["idCategoria"],
+            childColumns = ["idCategoria"],
+            onDelete = ForeignKey.RESTRICT
+        ),
+        ForeignKey(
+            entity = MetodoPagoEntity::class,
+            parentColumns = ["idMetodoPago"],
+            childColumns = ["idMetodoPago"],
+            onDelete = ForeignKey.RESTRICT
         )
     ],
-    indices = [Index("idUsuario")]
+    indices = [
+        Index("idUsuario"),
+        Index("idCategoria"),
+        Index("idMetodoPago")
+    ]
 )
 data class IngresoEntity(
     @PrimaryKey(autoGenerate = true)
     val idIngreso: Int = 0,
     val idUsuario: Int,
+    val idCategoria: Int,
+    val idMetodoPago: Int,
     val monto: Double,
     val descripcion: String,
     val fecha: Long,

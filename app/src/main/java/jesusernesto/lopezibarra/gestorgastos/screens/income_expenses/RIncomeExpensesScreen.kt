@@ -29,7 +29,6 @@ import jesusernesto.lopezibarra.gestorgastos.data.entity.CategoriaEntity
 import jesusernesto.lopezibarra.gestorgastos.data.entity.MetodoPagoEntity
 import jesusernesto.lopezibarra.gestorgastos.data.enums.TipoMetodoPago
 import jesusernesto.lopezibarra.gestorgastos.data.viewModel.MovimientoViewModel
-import jesusernesto.lopezibarra.gestorgastos.dummy.DummyData
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -208,13 +207,37 @@ fun NewMovementContent(
                 shape = RoundedCornerShape(10.dp), singleLine = true, colors = movementFieldColors())
 
             SectionLabel("Fecha")
-            OutlinedTextField(value = date, onValueChange = {}, readOnly = true,
-                modifier = Modifier.fillMaxWidth().height(54.dp).clickable { showDatePicker = true },
-                shape = RoundedCornerShape(10.dp), singleLine = true,
-                leadingIcon = {
-                    Icon(Icons.Outlined.CalendarMonth, contentDescription = null, tint = Color.Black)
-                },
-                colors = movementFieldColors())
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp)
+                    .clickable { showDatePicker = true }
+            ) {
+                OutlinedTextField(
+                    value = date,
+                    onValueChange = {},
+                    readOnly = true,
+                    enabled = false,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(54.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    singleLine = true,
+                    leadingIcon = {
+                        Icon(
+                            Icons.Outlined.CalendarMonth,
+                            contentDescription = null,
+                            tint = Color.Black
+                        )
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        disabledBorderColor = PurpleLight,
+                        disabledTextColor   = MaterialTheme.colorScheme.onSurface,
+                        disabledContainerColor = MaterialTheme.colorScheme.surface,
+                        disabledLeadingIconColor = Color.Black
+                    )
+                )
+            }
 
             if (showDatePicker) {
                 val datePickerState = rememberDatePickerState()
@@ -222,17 +245,17 @@ fun NewMovementContent(
                     onDismissRequest = { showDatePicker = false },
                     confirmButton = {
                         TextButton(onClick = {
-                            val millis = datePickerState.selectedDateMillis
-                            millis?.let {
-                                val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                                date = sdf.format(Date(it))
+                            datePickerState.selectedDateMillis?.let {
+                                date = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                                    .format(Date(it))
                             }
                             showDatePicker = false
                         }) { Text("OK") }
                     },
                     dismissButton = {
                         TextButton(onClick = { showDatePicker = false }) { Text("Cancelar") }
-                    }) {
+                    }
+                ) {
                     DatePicker(state = datePickerState)
                 }
             }
@@ -270,14 +293,51 @@ fun NewMovementContent(
             Spacer(modifier = Modifier.height(20.dp))
 
             Row(
-                modifier = Modifier.fillMaxWidth().height(56.dp)
-                    .clip(RoundedCornerShape(10.dp)).border(2.dp, PurpleLight, RoundedCornerShape(10.dp))
-                    .background(MaterialTheme.colorScheme.surface).clickable { showLocationDialog = true }.padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Outlined.LocationOn, contentDescription = null, tint = Purple, modifier = Modifier.size(24.dp))
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .border(2.dp, PurpleLight, RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.surface)
+                    .clickable { showLocationDialog = true }
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Outlined.LocationOn, contentDescription = null,
+                    tint = Purple, modifier = Modifier.size(24.dp))
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(text = location ?: "Agregar ubicación...", color = TextGray, fontSize = 14.sp, fontWeight = FontWeight.Medium,
-                    fontStyle = if (location == null) FontStyle.Italic else FontStyle.Normal)
+                Text(
+                    text = location ?: "Agregar Ubicación...",
+                    color = if (location != null) MaterialTheme.colorScheme.onSurface else TextGray,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    fontStyle = if (location == null) FontStyle.Italic else FontStyle.Normal
+                )
+            }
+
+            if (showLocationDialog) {
+                AlertDialog(
+                    onDismissRequest = { showLocationDialog = false },
+                    title = { Text("¿Dónde realizaste este movimiento?") },
+                    text = {
+                        OutlinedTextField(
+                            value = locationInput,
+                            onValueChange = { locationInput = it },
+                            label = { Text("Ej: Walmart, Calle 5 de Febrero...") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            location = locationInput.takeIf { it.isNotBlank() }
+                            showLocationDialog = false
+                        }) { Text("Aceptar") }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showLocationDialog = false }) { Text("Cancelar") }
+                    }
+                )
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -330,24 +390,6 @@ fun NewMovementContent(
                     }
                 )
             }
-        }
-
-        if (showLocationDialog) {
-            AlertDialog(onDismissRequest = { showLocationDialog = false },
-                title = { Text("Agregar Ubicación") },
-                text = {
-                    OutlinedTextField(value = locationInput, onValueChange = { locationInput = it },
-                        label = { Text("Lugar / Dirección") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                },
-                confirmButton = {
-                    TextButton(onClick = { location = locationInput
-                        showLocationDialog = false
-                    }) { Text("Aceptar") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showLocationDialog = false }) { Text("Cancelar") }
-                }
-            )
         }
     }
 }

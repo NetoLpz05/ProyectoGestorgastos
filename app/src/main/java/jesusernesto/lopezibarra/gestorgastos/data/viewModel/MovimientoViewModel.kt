@@ -66,6 +66,8 @@ class MovimientoViewModel(application: Application) : AndroidViewModel(applicati
                 } else {
                     val ingreso = IngresoEntity(
                         idUsuario = idUsuario,
+                        idCategoria = idCategoria,
+                        idMetodoPago = idMetodoPago,
                         monto = monto.toDouble(),
                         descripcion = descripcion,
                         fecha = fechaLong,

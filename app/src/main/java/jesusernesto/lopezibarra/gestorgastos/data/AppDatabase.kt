@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
         UsuarioGrupoEntity::class,
         DeudaGrupoEntity::class,
         GastoFijoEntity::class
-    ], version = 4, exportSchema = false
+    ], version = 5, exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
 
