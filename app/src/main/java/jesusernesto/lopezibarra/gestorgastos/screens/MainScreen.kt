@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Delete
@@ -21,6 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -30,6 +33,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import jesusernesto.lopezibarra.gestorgastos.data.SessionManager
 import jesusernesto.lopezibarra.gestorgastos.dummy.DummyData
 import jesusernesto.lopezibarra.gestorgastos.dummy.Transaccion
 import jesusernesto.lopezibarra.gestorgastos.screens.budget.BudgetScreen
@@ -201,6 +207,8 @@ fun HomeScreen(
     var fechaHasta by remember { mutableStateOf(todayUtcMillis()) }
     var pickerAbierto by remember { mutableStateOf<String?>(null) }
 
+    val usuario = SessionManager.usuarioActual
+
     val stateDesde = rememberDatePickerState(
         initialSelectedDateMillis = fechaDesde,
         selectableDates = object : SelectableDates {
@@ -285,17 +293,30 @@ fun HomeScreen(
                 modifier = Modifier.size(44.dp).clip(CircleShape).background(PurpleLight),
                 contentAlignment = Alignment.Center
             ) {
-                Image(
-                    painter = painterResource(id = DummyData.userActual.pfp),
-                    contentDescription = "Foto de perfil",
-                    modifier = Modifier.fillMaxSize().clip(CircleShape)
-                )
+                if (usuario?.fotoPerfil != null) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(usuario.fotoPerfil)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Foto de perfil",
+                        modifier = Modifier.fillMaxSize().clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Filled.Person,
+                        contentDescription = "Foto de perfil",
+                        modifier = Modifier.size(28.dp),
+                        tint = Color.White
+                    )
+                }
             }
             Spacer(modifier = Modifier.width(10.dp))
             Column {
                 Text(text = DummyData.mesActual, fontSize = 20.sp, color = TextGray)
                 Text(
-                    text = "Mis finanzas",
+                    text = if (usuario != null) "Hola, ${usuario.nombre}" else "Mis finanzas",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
