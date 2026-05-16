@@ -1,9 +1,12 @@
 package jesusernesto.lopezibarra.gestorgastos.screens.user
 
 import android.app.Application
+import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import jesusernesto.lopezibarra.gestorgastos.data.AppDatabase
+import jesusernesto.lopezibarra.gestorgastos.data.Notifications.NotificationScheduler
+import jesusernesto.lopezibarra.gestorgastos.data.Notifications.Notificationhelper
 import jesusernesto.lopezibarra.gestorgastos.data.SessionManager
 import jesusernesto.lopezibarra.gestorgastos.data.entity.UsuarioEntity
 import jesusernesto.lopezibarra.gestorgastos.data.repository.AuthResult
@@ -38,6 +41,14 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
             _uiState.value = when (result) {
                 is AuthResult.Exito -> {
                     SessionManager.usuarioActual = result.usuario
+                    val prefs = getApplication<Application>()
+                        .getSharedPreferences("alertas_config", Context.MODE_PRIVATE)
+                    prefs.edit()
+                        .putInt("id_usuario_actual", result.usuario.idUsuario)
+                        .apply()
+                    Notificationhelper.crearCanal(getApplication())
+                    NotificationScheduler.programar(getApplication())
+
                     AuthUiState.Exito(result.usuario)
                 }
                 is AuthResult.Error -> AuthUiState.Error(result.mensaje)
@@ -126,6 +137,7 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
     fun cerrarSesion() {
         SessionManager.cerrarSesion()
         _uiState.value = AuthUiState.Idle
+        NotificationScheduler.cancelar(getApplication())
     }
 
     fun resetState() {

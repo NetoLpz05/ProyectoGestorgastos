@@ -1,5 +1,7 @@
 package jesusernesto.lopezibarra.gestorgastos.screens.user
 
+import android.content.Context
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -11,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -18,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import jesusernesto.lopezibarra.gestorgastos.data.Notifications.NotificationScheduler
 import jesusernesto.lopezibarra.gestorgastos.dummy.DummyData
 import jesusernesto.lopezibarra.gestorgastos.screens.components.AppTopBar
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
@@ -28,6 +32,7 @@ fun AlertasScreen(
     onBack: () -> Unit = {},
     viewModel: AlertaViewModel = viewModel()
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -71,7 +76,8 @@ fun AlertasScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface)
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth()
@@ -79,10 +85,14 @@ fun AlertasScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Habilitar alertas", fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
-                            Text("Recibe notificaciones en tiempo real",
-                                fontSize = 13.sp, color = TextGray)
+                            Text(
+                                "Habilitar alertas", fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                "Recibe notificaciones en tiempo real",
+                                fontSize = 13.sp, color = TextGray
+                            )
                         }
                         Switch(
                             checked = alertasHabilitadasLocal,
@@ -102,10 +112,14 @@ fun AlertasScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Umbral de Notificación", fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface)
-                    Text("${(umbralLocal * 100).toInt()}%", fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp, color = Purple)
+                    Text(
+                        "Umbral de Notificación", fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        "${(umbralLocal * 100).toInt()}%", fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp, color = Purple
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -114,7 +128,8 @@ fun AlertasScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface)
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
                 ) {
                     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)) {
                         Slider(
@@ -149,16 +164,19 @@ fun AlertasScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                Text("Alertas por Categoría", fontWeight = FontWeight.Bold,
+                Text(
+                    "Alertas por Categoría", fontWeight = FontWeight.Bold,
                     fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(bottom = 10.dp))
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
 
                 DummyData.categorias.forEach { (emoji, nombre) ->
                     Card(
                         modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
                         shape = RoundedCornerShape(14.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface)
+                            containerColor = MaterialTheme.colorScheme.surface
+                        )
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth()
@@ -174,9 +192,11 @@ fun AlertasScreen(
                                 Text(emoji, fontSize = 22.sp)
                             }
                             Spacer(modifier = Modifier.width(14.dp))
-                            Text(nombre, fontWeight = FontWeight.SemiBold, fontSize = 15.sp,
+                            Text(
+                                nombre, fontWeight = FontWeight.SemiBold, fontSize = 15.sp,
                                 color = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.weight(1f))
+                                modifier = Modifier.weight(1f)
+                            )
                             Switch(
                                 checked = categoriasState[nombre] ?: true,
                                 onCheckedChange = { categoriasState[nombre] = it },
@@ -194,23 +214,49 @@ fun AlertasScreen(
             }
 
             Surface(shadowElevation = 8.dp, color = MaterialTheme.colorScheme.surface) {
-                Button(
-                    onClick = {
-                        viewModel.guardarConfiguracion(umbralLocal, alertasHabilitadasLocal)
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
-                        .height(48.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Purple)
-                ) {
-                    Text(
-                        "Guardar Configuración",
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 15.sp,
-                        color = Color.White
-                    )
+                Column {
+                    OutlinedButton(
+                            onClick = {
+                                val prefs = context.getSharedPreferences("alertas_config", Context.MODE_PRIVATE)
+                                val idUsuario = prefs.getInt("id_usuario_actual", -1)
+                                android.util.Log.d("TEST_NOTIF", "idUsuario en prefs: $idUsuario")
+                                android.util.Log.d("TEST_NOTIF", "umbral: ${prefs.getFloat("umbral", -1f)}")
+                                android.util.Log.d("TEST_NOTIF", "habilitadas: ${prefs.getBoolean("habilitadas", false)}")
+                                NotificationScheduler.ejecutarAhora(context)
+                            },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .padding(top = 12.dp)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, Purple)
+                    ) {
+                        Text(
+                            "🔔 Probar notificación",
+                            color = Purple,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                    Button(
+                        onClick = {
+                            viewModel.guardarConfiguracion(umbralLocal, alertasHabilitadasLocal)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Purple)
+                    ) {
+                        Text(
+                            "Guardar Configuración",
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 15.sp,
+                            color = Color.White
+                        )
+                    }
                 }
             }
         }

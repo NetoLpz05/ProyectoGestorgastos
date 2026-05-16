@@ -16,9 +16,14 @@ interface GastoDao {
     fun obtenerPorRango(idUsuario: Int, desde: Long, hasta: Long): Flow<List<GastoEntity>>
 
     @Query("""
-        SELECT SUM(monto) FROM gasto 
-        WHERE idUsuario = :idUsuario AND idCategoria = :idCategoria 
-        AND fecha LIKE :mesAnioPattern
-    """)
-    fun obtenerGastoTotalPorCategoria(idUsuario: Int, idCategoria: Int, mesAnioPattern: String): Flow<Double?>
+    SELECT SUM(monto) FROM gasto 
+    WHERE idUsuario = :idUsuario AND idCategoria = :idCategoria 
+    AND fecha BETWEEN :inicio AND :fin
+""")
+    fun obtenerGastoTotalPorCategoria(
+        idUsuario: Int,
+        idCategoria: Int,
+        inicio: Long,
+        fin: Long
+    ): Flow<Double?>
 }

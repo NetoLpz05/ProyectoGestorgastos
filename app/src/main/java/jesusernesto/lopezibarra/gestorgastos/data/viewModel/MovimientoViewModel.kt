@@ -5,6 +5,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import jesusernesto.lopezibarra.gestorgastos.data.AppDatabase
+import jesusernesto.lopezibarra.gestorgastos.data.Notifications.NotificationScheduler
 import jesusernesto.lopezibarra.gestorgastos.data.SessionManager
 import jesusernesto.lopezibarra.gestorgastos.data.entity.GastoEntity
 import jesusernesto.lopezibarra.gestorgastos.data.entity.IngresoEntity
@@ -141,6 +142,7 @@ class MovimientoViewModel(application: Application) : AndroidViewModel(applicati
                 e.printStackTrace()
             }
         }
+        NotificationScheduler.ejecutarAhora(getApplication())
     }
 
     fun resetSaveSuccess() {

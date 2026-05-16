@@ -61,10 +61,17 @@ class BudgetViewModel(application: Application) : AndroidViewModel(application) 
         Triple(mes, anio, cats)
     }.flatMapLatest { (mes, anio, cats) ->
         val userId = SessionManager.usuarioActual?.idUsuario ?: return@flatMapLatest flowOf(emptyMap())
-        val mesAnioPattern = "%/${String.format("%02d", mes)}/$anio"
+        val cal = Calendar.getInstance()
+        cal.set(anio, mes - 1, 1, 0, 0, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        val inicio = cal.timeInMillis
+        cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH))
+        cal.set(Calendar.HOUR_OF_DAY, 23); cal.set(Calendar.MINUTE, 59)
+        cal.set(Calendar.SECOND, 59); cal.set(Calendar.MILLISECOND, 999)
+        val fin = cal.timeInMillis
 
         val flows = cats.map { cat ->
-            db.gastoDao().obtenerGastoTotalPorCategoria(userId, cat.idCategoria, mesAnioPattern)
+            db.gastoDao().obtenerGastoTotalPorCategoria(userId, cat.idCategoria, inicio, fin)
                 .map { total -> cat.idCategoria to (total ?: 0.0) }
         }
 
