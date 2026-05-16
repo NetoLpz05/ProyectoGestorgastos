@@ -1,58 +1,103 @@
 package jesusernesto.lopezibarra.gestorgastos.screens.income_expenses
 
-
-
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.*
+import androidx.lifecycle.viewmodel.compose.viewModel
+import jesusernesto.lopezibarra.gestorgastos.data.viewModel.*
 import jesusernesto.lopezibarra.gestorgastos.ui.theme.*
+import java.text.*
+import java.util.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditExpenseScreen(
+    tipo: String,
+    id: Int,
     onBack: () -> Unit,
     onSave: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    movimientoViewModel: MovimientoViewModel = viewModel(),
+    metodoPagoViewModel: MetodoPagoViewModel = viewModel()
 ) {
+    var movimiento by remember { mutableStateOf<MovimientoUI?>(null) }
+    
+    var amount by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+    var dateLong by remember { mutableLongStateOf(0L) }
+    var selectedCategoryId by remember { mutableIntStateOf(0) }
+    var selectedPaymentId by remember { mutableIntStateOf(0) }
+    var location by remember { mutableStateOf("") }
+    var photoUri by remember { mutableStateOf<String?>(null) }
+    
+    var showDatePicker by remember { mutableStateOf(false) }
 
-    var amount by remember { mutableStateOf("140.00") }
-    var description by remember { mutableStateOf("Suscripción de Netflix") }
-    var date by remember { mutableStateOf("22/03/2026") }
-    var selectedCategory by remember { mutableStateOf("Entretenimiento") }
-    var location by remember { mutableStateOf("Montebello 406. Casa Blanca") }
+    val categorias by movimientoViewModel.categorias.collectAsState(initial = emptyList())
+    val metodosPago by metodoPagoViewModel.metodosPago.collectAsState()
+    val saveSuccess by movimientoViewModel.saveSuccess.collectAsState()
+
+    LaunchedEffect(id, tipo) {
+        movimiento = movimientoViewModel.obtenerMovimiento(tipo, id)
+    }
+
+    LaunchedEffect(movimiento) {
+        movimiento?.let {
+            amount = it.monto.toString()
+            description = it.descripcion
+            dateLong = it.fecha
+            selectedCategoryId = it.idCategoria
+            selectedPaymentId = it.idMetodoPago
+            location = it.ubicacion ?: ""
+            photoUri = it.fotoUri
+        }
+    }
+
+    LaunchedEffect(saveSuccess) {
+        if (saveSuccess) {
+            onSave()
+            movimientoViewModel.resetSaveSuccess()
+        }
+    }
+
+    if (movimiento == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = Purple)
+        }
+        return
+    }
+
+    val isGasto = tipo == "gasto"
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        Surface(shadowElevation = 2.dp) {
-            Box(modifier = Modifier.fillMaxWidth().height(56.dp).background(Color.White)) {
+        Surface(shadowElevation = 2.dp, color = MaterialTheme.colorScheme.surface) {
+            Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
                 IconButton(onClick = onBack, modifier = Modifier.align(Alignment.CenterStart)) {
-                    Icon(Icons.Outlined.ArrowBack, contentDescription = null, tint = Purple)
+                    Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = null, tint = Purple)
                 }
                 Text(
-                    text = "Editar Gasto",
+                    text = if (isGasto) "Editar Gasto" else "Editar Ingreso",
                     modifier = Modifier.align(Alignment.Center),
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -66,46 +111,77 @@ fun EditExpenseScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                "MONTO DEL GASTO",
+                if (isGasto) "MONTO DEL GASTO" else "MONTO DEL INGRESO",
                 fontWeight = FontWeight.Bold,
                 fontSize = 12.sp,
-                color = TextGray,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Start
+                color = TextGray
             )
             Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("$", fontWeight = FontWeight.Bold, fontSize = 48.sp, color = TextGray)
+                Text("$", fontWeight = FontWeight.Bold, fontSize = 48.sp, color = MaterialTheme.colorScheme.onSurface)
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(amount, fontWeight = FontWeight.Bold, fontSize = 48.sp, color = TextGray)
+                OutlinedTextField(
+                    value = amount,
+                    onValueChange = { if (it.matches(Regex("^\\d*\\.?\\d{0,2}$"))) amount = it },
+                    textStyle = LocalTextStyle.current.copy(fontSize = 48.sp, fontWeight = FontWeight.Bold),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = Color.Transparent,
+                        focusedBorderColor = Color.Transparent
+                    )
+                )
             }
 
             SectionLabel("DESCRIPCIÓN")
             EditFieldSimple(value = description, onValueChange = { description = it })
 
             SectionLabel("FECHA")
-            EditFieldSimple(value = date, onValueChange = {}, icon = Icons.Outlined.CalendarMonth)
+            val dateText = remember(dateLong) {
+                SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(dateLong))
+            }
+            Box(modifier = Modifier.clickable { showDatePicker = true }) {
+                EditFieldSimple(value = dateText, onValueChange = {}, icon = Icons.Outlined.CalendarMonth, enabled = false)
+            }
+
+            if (showDatePicker) {
+                val datePickerState = rememberDatePickerState(initialSelectedDateMillis = dateLong)
+                DatePickerDialog(
+                    onDismissRequest = { showDatePicker = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            datePickerState.selectedDateMillis?.let { dateLong = it }
+                            showDatePicker = false
+                        }) { Text("Aceptar") }
+                    }
+                ) { DatePicker(state = datePickerState) }
+            }
 
             SectionLabel("CATEGORÍA")
             Row(
                 modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                CategoryIconItem("Vivienda", Icons.Outlined.Home, selectedCategory == "Vivienda") { selectedCategory = "Vivienda" }
-                CategoryIconItem("Entretenimiento", Icons.Outlined.Tv, selectedCategory == "Entretenimiento") { selectedCategory = "Entretenimiento" }
-                CategoryIconItem("Transporte", Icons.Outlined.DirectionsCar, selectedCategory == "Transporte") { selectedCategory = "Transporte" }
-                CategoryIconItem("Alimentación", Icons.Outlined.Restaurant, selectedCategory == "Alimentación") { selectedCategory = "Alimentación" }
-                CategoryIconItem("Salud", Icons.Outlined.FavoriteBorder, selectedCategory == "Salud") { selectedCategory = "Salud" }
-                CategoryIconItem("Otros", Icons.Outlined.GridView, selectedCategory == "Otros") { selectedCategory = "Otros" }
+                categorias.forEach { cat ->
+                    val partes = cat.nombre.split(" ", limit = 2)
+                    val emoji = partes.firstOrNull() ?: "📦"
+                    val nombre = partes.getOrNull(1) ?: cat.nombre
+                    CategoryIconItem(nombre, emoji, selectedCategoryId == cat.idCategoria) {
+                        selectedCategoryId = cat.idCategoria
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
             SectionLabel("MÉTODO DE PAGO")
-            PaymentCard()
+            val selectedMetodo = metodosPago.find { it.idMetodoPago == selectedPaymentId }
+            PaymentCard(
+                nombre = selectedMetodo?.nombre ?: "Seleccionar",
+                detalle = "**** ${selectedMetodo?.ultimosDigitos ?: "0000"}"
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -113,7 +189,7 @@ fun EditExpenseScreen(
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 16.dp)) {
                     Icon(Icons.Outlined.LocationOn, contentDescription = null, tint = Purple, modifier = Modifier.size(24.dp))
                     Spacer(modifier = Modifier.width(12.dp))
-                    Text(location, color = TextGray, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Text(location.ifBlank { "Sin ubicación" }, color = TextGray, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                 }
             }
 
@@ -128,7 +204,7 @@ fun EditExpenseScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Outlined.CameraAlt, contentDescription = null, tint = TextGray, modifier = Modifier.size(24.dp))
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text("Cambiar foto de recibo", color = TextGray, fontSize = 14.sp)
+                        Text(if (photoUri != null) "Cambiar foto de recibo" else "Adjuntar foto", color = TextGray, fontSize = 14.sp)
                     }
                 }
             }
@@ -136,23 +212,38 @@ fun EditExpenseScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = onSave,
+                onClick = {
+                    movimientoViewModel.actualizarMovimiento(
+                        id = id,
+                        isGasto = isGasto,
+                        monto = amount.toDoubleOrNull() ?: 0.0,
+                        descripcion = description,
+                        fecha = dateLong,
+                        idCategoria = selectedCategoryId,
+                        idMetodoPago = selectedPaymentId,
+                        ubicacion = location,
+                        fotoUri = photoUri
+                    )
+                },
                 modifier = Modifier.fillMaxWidth().height(54.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Purple)
             ) {
-                Text("Guardar Cambios", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text("Guardar Cambios", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.White)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedButton(
-                onClick = onDelete,
+                onClick = {
+                    movimientoViewModel.eliminarMovimiento(id, isGasto)
+                    onDelete()
+                },
                 modifier = Modifier.fillMaxWidth().height(54.dp),
                 shape = RoundedCornerShape(12.dp),
                 border = BorderStroke(1.dp, RedGasto)
             ) {
-                Text("Eliminar Gasto", color = RedGasto, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text(if (isGasto) "Eliminar Gasto" else "Eliminar Ingreso", color = RedGasto, fontWeight = FontWeight.Bold, fontSize = 18.sp)
             }
 
             Spacer(modifier = Modifier.height(40.dp))
@@ -167,44 +258,47 @@ private fun SectionLabel(text: String) {
 }
 
 @Composable
-private fun EditFieldSimple(value: String, onValueChange: (String) -> Unit, icon: ImageVector? = null) {
+private fun EditFieldSimple(value: String, onValueChange: (String) -> Unit, icon: ImageVector? = null, enabled: Boolean = true) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
+        enabled = enabled,
         modifier = Modifier.fillMaxWidth().height(54.dp),
         shape = RoundedCornerShape(10.dp),
-        leadingIcon = icon?.let { { Icon(it, contentDescription = null, tint = Color.Black) } },
+        leadingIcon = icon?.let { { Icon(it, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface) } },
         colors = OutlinedTextFieldDefaults.colors(
             unfocusedBorderColor = PurpleLight,
-            focusedBorderColor = Purple
+            focusedBorderColor = Purple,
+            disabledBorderColor = PurpleLight,
+            disabledTextColor = MaterialTheme.colorScheme.onSurface
         )
     )
 }
 
 @Composable
-private fun CategoryIconItem(label: String, icon: ImageVector, isSelected: Boolean, onClick: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onClick() }) {
+private fun CategoryIconItem(label: String, emoji: String, isSelected: Boolean, onClick: () -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(bottom = 8.dp).clickable { onClick() }) {
         Box(
             modifier = Modifier.size(50.dp).clip(RoundedCornerShape(12.dp))
                 .border(2.dp, if (isSelected) Purple else Color.Transparent, RoundedCornerShape(12.dp))
                 .background(if (isSelected) Color.White else Color.Transparent),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, contentDescription = null, tint = if (isSelected) Purple else TextGray.copy(alpha = 0.6f), modifier = Modifier.size(32.dp))
+            Text(emoji, fontSize = 24.sp)
         }
         Text(label, fontSize = 11.sp, color = if (isSelected) Purple else TextGray)
     }
 }
 
 @Composable
-private fun PaymentCard() {
+private fun PaymentCard(nombre: String, detalle: String) {
     Surface(modifier = Modifier.fillMaxWidth().height(64.dp), shape = RoundedCornerShape(12.dp), color = Purple) {
         Row(modifier = Modifier.padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Outlined.CreditCard, contentDescription = null, tint = Color.White)
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text("Tarjeta de Débito", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                Text("MASTERCARD - 4291", color = Color.White.copy(alpha = 0.7f), fontSize = 11.sp)
+                Text(nombre, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text(detalle, color = Color.White.copy(alpha = 0.7f), fontSize = 11.sp)
             }
             Text("Cambiar >", color = Color.White.copy(alpha = 0.8f), fontSize = 13.sp, fontWeight = FontWeight.Bold)
         }
@@ -223,10 +317,4 @@ private fun DashedBoxEdit(color: Color, content: @Composable () -> Unit) {
     ) {
         content()
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun EditExpensePreview() {
-    EditExpenseScreen(onBack = {}, onSave = {}, onDelete = {})
 }
