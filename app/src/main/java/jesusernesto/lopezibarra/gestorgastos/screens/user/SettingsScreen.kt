@@ -218,10 +218,12 @@ fun AlertasScreen(
                     OutlinedButton(
                             onClick = {
                                 val prefs = context.getSharedPreferences("alertas_config", Context.MODE_PRIVATE)
-                                val idUsuario = prefs.getInt("id_usuario_actual", -1)
-                                android.util.Log.d("TEST_NOTIF", "idUsuario en prefs: $idUsuario")
-                                android.util.Log.d("TEST_NOTIF", "umbral: ${prefs.getFloat("umbral", -1f)}")
-                                android.util.Log.d("TEST_NOTIF", "habilitadas: ${prefs.getBoolean("habilitadas", false)}")
+                                // Limpiar todas las flags de "ya notificado"
+                                val editor = prefs.edit()
+                                prefs.all.keys
+                                    .filter { it.startsWith("alerta_") || it.startsWith("excedido_") }
+                                    .forEach { editor.remove(it) }
+                                editor.apply()
                                 NotificationScheduler.ejecutarAhora(context)
                             },
                         modifier = Modifier
