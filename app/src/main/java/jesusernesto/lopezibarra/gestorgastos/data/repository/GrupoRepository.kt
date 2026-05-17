@@ -1,12 +1,8 @@
 package jesusernesto.lopezibarra.gestorgastos.data.repository
 
-import jesusernesto.lopezibarra.gestorgastos.data.Grupo
 import jesusernesto.lopezibarra.gestorgastos.data.dao.GrupoDao
-import jesusernesto.lopezibarra.gestorgastos.data.entity.DeudaGrupoEntity
-import jesusernesto.lopezibarra.gestorgastos.data.entity.GastoGrupoEntity
-import jesusernesto.lopezibarra.gestorgastos.data.entity.GrupoEntity
-import jesusernesto.lopezibarra.gestorgastos.data.entity.UsuarioEntity
-import jesusernesto.lopezibarra.gestorgastos.data.entity.UsuarioGrupoEntity
+import jesusernesto.lopezibarra.gestorgastos.data.dao.MovimientoDao
+import jesusernesto.lopezibarra.gestorgastos.data.entity.*
 import kotlinx.coroutines.flow.Flow
 import kotlin.random.Random
 
@@ -15,7 +11,10 @@ sealed class GrupoResult{
     data class Error(val mensaje: String) : GrupoResult()
 }
 
-class GrupoRepository(private val dao: GrupoDao){
+class GrupoRepository(
+    private val dao: GrupoDao,
+    private val movimientoDao: MovimientoDao? = null
+){
     fun obtenerGrupos(): Flow<List<GrupoEntity>> = dao.obtenerTodos()
 
     suspend fun crearGrupo(
@@ -64,6 +63,7 @@ class GrupoRepository(private val dao: GrupoDao){
         idGrupo: Int,
         idUsuarioPago: Int,
         idCategoria: Int,
+        idMetodoPago: Int,
         nombre: String,
         monto: Double,
         fecha: Long,
@@ -74,7 +74,8 @@ class GrupoRepository(private val dao: GrupoDao){
         if (participantes.isEmpty()) return GrupoResult.Error("Debe haber al menos un participante")
 
         return try {
-            val gasto = GastoGrupoEntity(
+            // 1. Insertar el gasto en la tabla de gastos de grupo
+            val gastoGrupo = GastoGrupoEntity(
                 idGrupo = idGrupo,
                 idUsuarioPago = idUsuarioPago,
                 idCategoria = idCategoria,
@@ -82,25 +83,42 @@ class GrupoRepository(private val dao: GrupoDao){
                 monto = monto,
                 fecha = fecha
             )
-            val idGasto = dao.insertarGastoGrupo(gasto)
+            val idGastoGrupoInserted = dao.insertarGastoGrupo(gastoGrupo)
 
+            // 2. Crear deudas para los demás participantes
             val montoPorPersona = monto / participantes.size
             participantes
                 .filter { it != idUsuarioPago }
                 .forEach { idParticipante ->
                     val deuda = DeudaGrupoEntity(
-                        idGastoGrupo = idGasto.toInt(),
+                        idGastoGrupo = idGastoGrupoInserted.toInt(),
                         idUsuario = idParticipante,
                         montoDeuda = montoPorPersona
                     )
                     dao.insertarDeuda(deuda)
                 }
 
+            // 3. Sincronizar al perfil individual de quien pagó
+            movimientoDao?.let { movDao ->
+                val gastoIndividual = GastoEntity(
+                    idUsuario = idUsuarioPago,
+                    idCategoria = idCategoria,
+                    idMetodoPago = idMetodoPago,
+                    monto = monto,
+                    descripcion = "[Grupo] ${nombre.trim()}",
+                    fecha = fecha,
+                    idGastoGrupo = idGastoGrupoInserted.toInt(),
+                    esGrupal = true
+                )
+                movDao.insertGasto(gastoIndividual)
+            }
+
             val grupo = dao.obtenerPorId(idGrupo)
                 ?: return GrupoResult.Error("Grupo no encontrado")
             GrupoResult.Exito(grupo)
         } catch (e: Exception) {
-            GrupoResult.Error("No se pudo registrar el gasto")
+            e.printStackTrace()
+            GrupoResult.Error("No se pudo registrar el gasto: ${e.message}")
         }
     }
 
@@ -115,7 +133,6 @@ class GrupoRepository(private val dao: GrupoDao){
 
     private fun generarCodigo(): String{
         val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-        return (1..6).map { chars[Random.nextInt(chars.length)] }.joinToString("")
+        return (1..5).map { chars[Random.nextInt(chars.length)] }.joinToString("")
     }
 }
-

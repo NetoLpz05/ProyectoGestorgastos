@@ -45,6 +45,8 @@ import jesusernesto.lopezibarra.gestorgastos.screens.components.BottomNavBar
 import jesusernesto.lopezibarra.gestorgastos.screens.graphs.GraphicScreen
 import jesusernesto.lopezibarra.gestorgastos.screens.group.CrearGrupoScreen
 import jesusernesto.lopezibarra.gestorgastos.screens.group.MisGruposScreen
+import jesusernesto.lopezibarra.gestorgastos.screens.group.GroupDetailScreen
+import jesusernesto.lopezibarra.gestorgastos.screens.group.AddGroupExpenseScreen
 import jesusernesto.lopezibarra.gestorgastos.screens.income_expenses.AddCardScreen
 import jesusernesto.lopezibarra.gestorgastos.screens.income_expenses.EditExpenseScreen
 import jesusernesto.lopezibarra.gestorgastos.screens.income_expenses.NewMovementScreen
@@ -133,8 +135,24 @@ fun MainScreen(
             composable("Grupos") {
                 MisGruposScreen(
                     onAtras = { navController.popBackStack() },
-                    onAbrirGrupo = { /* navController.navigate("GrupoDetalle/${it.id}") */ },
+                    onAbrirGrupo = { navController.navigate("GrupoDetalle/${it.idGrupo}") },
                     onCrearGrupo = { navController.navigate("CrearGrupo") }
+                )
+            }
+            composable("GrupoDetalle/{idGrupo}") { backStackEntry ->
+                val idGrupo = backStackEntry.arguments?.getString("idGrupo")?.toIntOrNull() ?: 0
+                GroupDetailScreen(
+                    idGrupo = idGrupo,
+                    onBack = { navController.popBackStack() },
+                    onAddExpense = { navController.navigate("NuevoGastoGrupo/$idGrupo") }
+                )
+            }
+            composable("NuevoGastoGrupo/{idGrupo}") { backStackEntry ->
+                val idGrupo = backStackEntry.arguments?.getString("idGrupo")?.toIntOrNull() ?: 0
+                AddGroupExpenseScreen(
+                    idGrupo = idGrupo,
+                    onBack = { navController.popBackStack() },
+                    onSave = { navController.popBackStack() }
                 )
             }
             composable("CrearGrupo") {
@@ -174,8 +192,12 @@ fun MainScreen(
             composable("DetalleMovimiento/{tipo}/{id}") {
                 // TODO: Implement real Detail Screen
             }
-            composable("EditarGasto/{tipo}/{id}") {
+            composable("EditarGasto/{tipo}/{id}") { backStackEntry ->
+                val tipo = backStackEntry.arguments?.getString("tipo") ?: ""
+                val id = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0
                 EditExpenseScreen(
+                    tipo = tipo,
+                    id = id,
                     onBack = { navController.popBackStack() },
                     onSave = { navController.popBackStack() },
                     onDelete = { navController.popBackStack() }

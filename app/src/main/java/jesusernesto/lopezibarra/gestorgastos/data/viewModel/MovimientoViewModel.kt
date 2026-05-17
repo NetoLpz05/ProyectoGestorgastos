@@ -13,6 +13,8 @@ import jesusernesto.lopezibarra.gestorgastos.data.repository.MovimientoRepositor
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -24,6 +26,10 @@ sealed class MovimientoUI {
     abstract val fecha: Long
     abstract val createdAt: Long
     abstract val categoriaNombre: String
+    abstract val idCategoria: Int
+    abstract val idMetodoPago: Int
+    abstract val ubicacion: String?
+    abstract val fotoUri: String?
 
     data class Gasto(
         val entity: GastoEntity,
@@ -34,6 +40,10 @@ sealed class MovimientoUI {
         override val descripcion: String get() = entity.descripcion
         override val fecha: Long get() = entity.fecha
         override val createdAt: Long get() = entity.createdAt
+        override val idCategoria: Int get() = entity.idCategoria
+        override val idMetodoPago: Int get() = entity.idMetodoPago
+        override val ubicacion: String? get() = entity.nombreUbicacion
+        override val fotoUri: String? get() = entity.fotoRecibo
     }
 
     data class Ingreso(
@@ -45,6 +55,10 @@ sealed class MovimientoUI {
         override val descripcion: String get() = entity.descripcion
         override val fecha: Long get() = entity.fecha
         override val createdAt: Long get() = entity.createdAt
+        override val idCategoria: Int get() = entity.idCategoria
+        override val idMetodoPago: Int get() = entity.idMetodoPago
+        override val ubicacion: String? get() = entity.nombreUbicacion
+        override val fotoUri: String? get() = entity.fotoRecibo
     }
 }
 
@@ -90,6 +104,22 @@ class MovimientoViewModel(application: Application) : AndroidViewModel(applicati
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
+
+    suspend fun obtenerMovimiento(tipo: String, id: Int): MovimientoUI? {
+        return if (tipo == "gasto") {
+            val entity = repository.obtenerGastoPorId(id)
+            val catName = withContext(Dispatchers.IO) {
+                db.categoriaDao().obtenerPorId(entity?.idCategoria ?: 0)?.nombre ?: "📦 Otros"
+            }
+            entity?.let { MovimientoUI.Gasto(it, catName) }
+        } else {
+            val entity = repository.obtenerIngresoPorId(id)
+            val catName = withContext(Dispatchers.IO) {
+                db.categoriaDao().obtenerPorId(entity?.idCategoria ?: 0)?.nombre ?: "💰 Ingreso"
+            }
+            entity?.let { MovimientoUI.Ingreso(it, catName) }
+        }
+    }
 
     fun guardarMovimiento(
         isGasto: Boolean,
@@ -143,6 +173,70 @@ class MovimientoViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
         NotificationScheduler.ejecutarAhora(getApplication())
+    }
+
+    fun actualizarMovimiento(
+        id: Int,
+        isGasto: Boolean,
+        monto: Double,
+        descripcion: String,
+        fecha: Long,
+        idCategoria: Int,
+        idMetodoPago: Int,
+        ubicacion: String?,
+        fotoUri: String?
+    ) {
+        val idUsuario = SessionManager.usuarioActual?.idUsuario ?: return
+        viewModelScope.launch {
+            try {
+                if (isGasto) {
+                    val gasto = GastoEntity(
+                        idGasto = id,
+                        idUsuario = idUsuario,
+                        idCategoria = idCategoria,
+                        idMetodoPago = idMetodoPago,
+                        monto = monto,
+                        descripcion = descripcion,
+                        fecha = fecha,
+                        nombreUbicacion = ubicacion,
+                        fotoRecibo = fotoUri
+                    )
+                    repository.actualizarGasto(gasto)
+                } else {
+                    val ingreso = IngresoEntity(
+                        idIngreso = id,
+                        idUsuario = idUsuario,
+                        idCategoria = idCategoria,
+                        idMetodoPago = idMetodoPago,
+                        monto = monto,
+                        descripcion = descripcion,
+                        fecha = fecha,
+                        nombreUbicacion = ubicacion,
+                        fotoRecibo = fotoUri
+                    )
+                    repository.actualizarIngreso(ingreso)
+                }
+                _saveSuccess.value = true
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun eliminarMovimiento(id: Int, isGasto: Boolean) {
+        viewModelScope.launch {
+            try {
+                if (isGasto) {
+                    val entity = repository.obtenerGastoPorId(id)
+                    entity?.let { repository.eliminarGasto(it) }
+                } else {
+                    val entity = repository.obtenerIngresoPorId(id)
+                    entity?.let { repository.eliminarIngreso(it) }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     fun resetSaveSuccess() {

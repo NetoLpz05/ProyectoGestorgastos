@@ -34,7 +34,8 @@ data class GrupoUiState(
 class GrupoViewModel (application: Application) : AndroidViewModel(application){
 
     private val repository: GrupoRepository by lazy{
-        GrupoRepository(AppDatabase.getInstance(application).grupoDao())
+        val db = AppDatabase.getInstance(application)
+        GrupoRepository(db.grupoDao(), db.movimientoDao())
     }
 
     private val _uiState = MutableStateFlow(GrupoUiState())
@@ -117,8 +118,38 @@ class GrupoViewModel (application: Application) : AndroidViewModel(application){
 
     }
 
-    fun marcarDeudaPagada(idDeuda: Int){
-        viewModelScope.launch { repository.marcarPagada(idDeuda) }
+    fun agregarGastoGrupo(
+        idGrupo: Int,
+        idUsuarioPago: Int,
+        idCategoria: Int,
+        idMetodoPago: Int,
+        nombre: String,
+        monto: Double,
+        fecha: Long,
+        participantes: List<Int>
+    ) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(cargando = true, error = null) }
+            val result = repository.agregarGastoGrupo(
+                idGrupo, idUsuarioPago, idCategoria, idMetodoPago, nombre, monto, fecha, participantes
+            )
+            when (result) {
+                is GrupoResult.Exito -> {
+                    _uiState.update { it.copy(cargando = false) }
+                    seleccionarGrupo(idGrupo) // Recargar datos del grupo
+                }
+                is GrupoResult.Error -> {
+                    _uiState.update { it.copy(cargando = false, error = result.mensaje) }
+                }
+            }
+        }
+    }
+
+    fun marcarDeudaPagada(idDeuda: Int, idGrupo: Int){
+        viewModelScope.launch {
+            repository.marcarPagada(idDeuda)
+            seleccionarGrupo(idGrupo)
+        }
     }
 
     fun resetGrupoCreado() = _uiState.update { it.copy(grupoCreado = null) }

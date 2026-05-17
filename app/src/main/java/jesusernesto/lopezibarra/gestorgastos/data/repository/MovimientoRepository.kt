@@ -15,6 +15,22 @@ class MovimientoRepository(private val dao: MovimientoDao) {
         dao.insertIngreso(ingreso)
     }
 
+    suspend fun actualizarGasto(gasto: GastoEntity) {
+        dao.updateGasto(gasto)
+    }
+
+    suspend fun actualizarIngreso(ingreso: IngresoEntity) {
+        dao.updateIngreso(ingreso)
+    }
+
+    suspend fun eliminarGasto(gasto: GastoEntity) {
+        dao.deleteGasto(gasto)
+    }
+
+    suspend fun eliminarIngreso(ingreso: IngresoEntity) {
+        dao.deleteIngreso(ingreso)
+    }
+
     fun obtenerGastosPorUsuario(idUsuario: Int): Flow<List<GastoEntity>> = dao.getGastosPorUsuario(idUsuario)
     fun obtenerIngresosPorUsuario(idUsuario: Int): Flow<List<IngresoEntity>> = dao.getIngresosPorUsuario(idUsuario)
     

@@ -14,11 +14,17 @@ interface MovimientoDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertIngreso(ingreso: IngresoEntity)
 
-    @Delete
-    suspend fun editGasto(gasto: GastoEntity)
+    @Update
+    suspend fun updateGasto(gasto: GastoEntity)
+
+    @Update
+    suspend fun updateIngreso(ingreso: IngresoEntity)
 
     @Delete
-    suspend fun editIngreso(ingreso: IngresoEntity)
+    suspend fun deleteGasto(gasto: GastoEntity)
+
+    @Delete
+    suspend fun deleteIngreso(ingreso: IngresoEntity)
 
     @Query("SELECT * FROM gasto WHERE idUsuario = :idUsuario ORDER BY fecha DESC")
     fun getGastosPorUsuario(idUsuario: Int): Flow<List<GastoEntity>>
